@@ -8,6 +8,7 @@ import {
 } from '../types/api';
 import { ScenarioValues } from '../lib/scenario';
 import { ScenarioSimulator } from './ScenarioSimulator';
+import { FactorBreakdown } from './FactorBreakdown';
 import { RiskBadge } from './RiskBadge';
 import { StatusMessage } from './StatusMessage';
 import { getRiskColor } from '../lib/riskColors';
@@ -25,6 +26,7 @@ interface ZoneDetailProps {
     timestamp: string | null;
   } | null;
   simulation: RiskPredictionResponse | null;
+  baselinePrediction?: RiskPredictionResponse | null;
   scenarioValues: ScenarioValues | null;
   setScenarioValues: React.Dispatch<React.SetStateAction<ScenarioValues | null>>;
   simLoading: boolean;
@@ -45,6 +47,7 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
   zone,
   assessment,
   simulation,
+  baselinePrediction = null,
   scenarioValues,
   setScenarioValues,
   simLoading,
@@ -67,6 +70,11 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
   const color = getRiskColor(currentRiskLevel);
   const isScenarioActive = simulation !== null;
   const levelChanged = isScenarioActive && currentRiskLevel !== zone.risk_level;
+
+  const factors =
+    simulation?.contributing_factors ??
+    baselinePrediction?.contributing_factors ??
+    null;
 
   return (
     <div className="flex flex-col h-full">
@@ -164,6 +172,15 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
             <div className="text-xs text-slate-400 italic py-2">Risk evaluation pending telemetry</div>
           )}
         </div>
+
+        {/* P0-B.1: Risk Factor Breakdown */}
+        {factors && factors.length > 0 && (
+          <FactorBreakdown
+            factors={factors}
+            riskScore={currentRiskScore ?? 0}
+            isScenario={isScenarioActive}
+          />
+        )}
 
         {/* Live Rainfall Scenario Simulator */}
         <ScenarioSimulator

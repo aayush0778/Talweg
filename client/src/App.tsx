@@ -7,7 +7,13 @@ import { useApiResource } from './hooks/useApiResource';
 import { useHealth } from './hooks/useHealth';
 import { useScenario } from './hooks/useScenario';
 import { applySimulationToZones } from './lib/scenario';
-import { fetchRegions, fetchRiskZones, fetchEvents, fetchEnvironment } from './lib/apiClient';
+import {
+  fetchRegions,
+  fetchRiskZones,
+  fetchEvents,
+  fetchEnvironment,
+  predictRisk,
+} from './lib/apiClient';
 
 export const App: React.FC = () => {
   // Top-level API queries
@@ -30,6 +36,13 @@ export const App: React.FC = () => {
 
   const zoneEventsQ = useApiResource(
     () => fetchEvents({ zone_id: selectedZoneId! }),
+    [selectedZoneId],
+    Boolean(selectedZoneId)
+  );
+
+  // P0-B.1: Baseline prediction query to fetch contributing_factors for the selected zone
+  const baselinePredictQ = useApiResource(
+    () => predictRisk({ zone_id: selectedZoneId! }),
     [selectedZoneId],
     Boolean(selectedZoneId)
   );
@@ -93,6 +106,7 @@ export const App: React.FC = () => {
           selectedZone={selectedZone}
           assessment={assessment}
           simulation={scenario.simulation}
+          baselinePrediction={baselinePredictQ.data}
           scenarioValues={scenario.values}
           setScenarioValues={scenario.setValues}
           simLoading={scenario.simLoading}

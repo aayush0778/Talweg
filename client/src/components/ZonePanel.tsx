@@ -22,6 +22,7 @@ interface ZonePanelProps {
     timestamp: string | null;
   } | null;
   simulation: RiskPredictionResponse | null;
+  baselinePrediction?: RiskPredictionResponse | null;
   scenarioValues: ScenarioValues | null;
   setScenarioValues: React.Dispatch<React.SetStateAction<ScenarioValues | null>>;
   simLoading: boolean;
@@ -47,6 +48,7 @@ export const ZonePanel: React.FC<ZonePanelProps> = ({
   selectedZone,
   assessment = null,
   simulation,
+  baselinePrediction = null,
   scenarioValues,
   setScenarioValues,
   simLoading,
@@ -88,6 +90,7 @@ export const ZonePanel: React.FC<ZonePanelProps> = ({
           zone={selectedZone}
           assessment={assessment ?? selectedZone}
           simulation={simulation}
+          baselinePrediction={baselinePrediction}
           scenarioValues={scenarioValues}
           setScenarioValues={setScenarioValues}
           simLoading={simLoading}
