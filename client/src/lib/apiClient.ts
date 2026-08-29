@@ -4,6 +4,8 @@ import {
   LandslideEvent,
   EnvironmentObservation,
   HealthResponse,
+  RiskPredictionResponse,
+  SimulateRiskRequest,
   ApiErrorResponse,
 } from '../types/api';
 
@@ -22,24 +24,8 @@ export class ApiClientError extends Error {
   }
 }
 
-export async function apiGet<T>(path: string): Promise<T> {
-  let response: Response;
-  try {
-    response = await fetch(path, {
-      headers: {
-        Accept: 'application/json',
-      },
-    });
-  } catch (err) {
-    throw new ApiClientError(
-      'Cannot reach the SlopeGuard API — is the server running?',
-      'NETWORK_ERROR',
-      0,
-      err
-    );
-  }
-
-  let body: unknown;
+async function handleResponse<T>(response: Response): Promise<T> {
+  let body: unknown = null;
   const contentType = response.headers.get('content-type') || '';
   if (contentType.includes('application/json')) {
     try {
@@ -60,6 +46,49 @@ export async function apiGet<T>(path: string): Promise<T> {
   }
 
   return body as T;
+}
+
+export async function apiGet<T>(path: string): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetch(path, {
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+  } catch (err) {
+    throw new ApiClientError(
+      'Cannot reach the SlopeGuard API — is the server running?',
+      'NETWORK_ERROR',
+      0,
+      err
+    );
+  }
+
+  return handleResponse<T>(response);
+}
+
+export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetch(path, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+  } catch (err) {
+    throw new ApiClientError(
+      'Cannot reach the SlopeGuard API — is the server running?',
+      'NETWORK_ERROR',
+      0,
+      err
+    );
+  }
+
+  return handleResponse<T>(response);
 }
 
 export function fetchRegions(): Promise<Region[]> {
@@ -95,4 +124,8 @@ export function fetchEnvironment(zoneId: string): Promise<EnvironmentObservation
 
 export function fetchHealth(): Promise<HealthResponse> {
   return apiGet<HealthResponse>('/api/health');
+}
+
+export function simulateRisk(req: SimulateRiskRequest): Promise<RiskPredictionResponse> {
+  return apiPost<RiskPredictionResponse>('/api/risk/simulate', req);
 }

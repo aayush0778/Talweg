@@ -56,6 +56,41 @@ export interface EnvironmentObservation {
   source: string;
 }
 
+export interface FactorContribution {
+  factor: string;
+  raw: number;
+  normalized: number;
+  weight: number;
+  contribution: number;
+}
+
+export interface RiskPredictionInputs {
+  rainfall_24h: number;
+  rainfall_3d: number;
+  soil_moisture: number;
+  slope: number;
+  historical_density: number;
+}
+
+export interface RiskPredictionResponse {
+  zone_id: string;
+  zone_name: string;
+  risk_score: number;
+  risk_level: RiskLevel;
+  contributing_factors: FactorContribution[];
+  engine: 'deterministic' | 'ml';
+  timestamp: string;
+  inputs_used: RiskPredictionInputs;
+  data_source: string;
+}
+
+export interface SimulateRiskRequest {
+  zone_id: string;
+  rainfall_24h?: number;
+  rainfall_3d?: number;
+  soil_moisture?: number;
+}
+
 export interface HealthResponse {
   status: 'ok' | 'degraded';
   timestamp: string;
