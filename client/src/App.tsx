@@ -1,11 +1,13 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Header } from './components/Header';
 import { MapView } from './components/MapView';
 import { ZonePanel } from './components/ZonePanel';
+import { AlertBanner } from './components/AlertBanner';
 import { MapErrorBoundary } from './components/MapErrorBoundary';
 import { useApiResource } from './hooks/useApiResource';
 import { useHealth } from './hooks/useHealth';
 import { useScenario } from './hooks/useScenario';
+import { useAlerts } from './hooks/useAlerts';
 import { applySimulationToZones } from './lib/scenario';
 import {
   fetchRegions,
@@ -21,6 +23,9 @@ export const App: React.FC = () => {
   const zonesQ = useApiResource(fetchRiskZones, []);
   const eventsQ = useApiResource(fetchEvents, []);
   const { health, loading: healthLoading, error: healthError } = useHealth(20000);
+
+  // P0-B.2: Active alerts polling and manual refresh
+  const { alerts, refresh: refreshAlerts } = useAlerts(20000);
 
   // Selection state
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
@@ -49,6 +54,11 @@ export const App: React.FC = () => {
 
   // Phase 4 live rainfall scenario simulator hook
   const scenario = useScenario(selectedZone, envQ.data);
+
+  // Refresh active alerts whenever a new prediction or simulation completes
+  useEffect(() => {
+    refreshAlerts();
+  }, [scenario.simulation, baselinePredictQ.data, refreshAlerts]);
 
   // Derive display zones for MapView (selected zone polygon recolors when simulation is active)
   const displayZones = useMemo(
@@ -87,6 +97,9 @@ export const App: React.FC = () => {
 
       {/* Main Full-Bleed Interactive Workspace */}
       <main className="relative flex-1 w-full h-full overflow-hidden">
+        {/* P0-B.2: Top-Floating Active Alerts Banner */}
+        <AlertBanner alerts={alerts} onSelectZone={handleSelectZone} />
+
         {/* WebGL GIS Map Layer (recolors via displayZones prop) */}
         <MapErrorBoundary>
           <MapView
