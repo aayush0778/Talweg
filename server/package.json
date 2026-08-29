@@ -6,7 +6,10 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "migrate": "ts-node src/db/migrate.ts"
+    "migrate": "ts-node src/db/migrate.ts",
+    "seed": "ts-node src/db/seed.ts",
+    "db:reset": "npm run migrate && npm run seed",
+    "test": "node --require ts-node/register --test src/**/*.test.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",
