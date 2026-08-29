@@ -75,7 +75,7 @@ Open http://localhost:5173 in your browser.
 - [x] Phase 1: PostGIS schema + seed data + deterministic risk engine
 - [x] Phase 2: REST API endpoints (P0-A)
 - [x] Phase 3: GIS dashboard (P0-A)
-- [ ] Phase 4: P0-A integration + rainfall simulator
+- [x] Phase 4: P0-A integration + rainfall simulator
 - [ ] Phase 5: ML training + FastAPI service
 - [ ] Phase 6: P0-B (explanations, alerts, Copilot)
 

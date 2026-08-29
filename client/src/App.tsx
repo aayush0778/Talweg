@@ -1,10 +1,12 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Header } from './components/Header';
 import { MapView } from './components/MapView';
 import { ZonePanel } from './components/ZonePanel';
 import { MapErrorBoundary } from './components/MapErrorBoundary';
 import { useApiResource } from './hooks/useApiResource';
 import { useHealth } from './hooks/useHealth';
+import { useScenario } from './hooks/useScenario';
+import { applySimulationToZones } from './lib/scenario';
 import { fetchRegions, fetchRiskZones, fetchEvents, fetchEnvironment } from './lib/apiClient';
 
 export const App: React.FC = () => {
@@ -32,6 +34,30 @@ export const App: React.FC = () => {
     Boolean(selectedZoneId)
   );
 
+  // Phase 4 live rainfall scenario simulator hook
+  const scenario = useScenario(selectedZone, envQ.data);
+
+  // Derive display zones for MapView (selected zone polygon recolors when simulation is active)
+  const displayZones = useMemo(
+    () => applySimulationToZones(zonesQ.data ?? [], selectedZoneId ?? '', scenario.simulation),
+    [zonesQ.data, selectedZoneId, scenario.simulation]
+  );
+
+  // Unified assessment passed to detail card
+  const assessment = scenario.simulation
+    ? {
+        risk_score: scenario.simulation.risk_score,
+        risk_level: scenario.simulation.risk_level,
+        timestamp: scenario.simulation.timestamp,
+      }
+    : selectedZone
+      ? {
+          risk_score: selectedZone.risk_score,
+          risk_level: selectedZone.risk_level,
+          timestamp: selectedZone.timestamp,
+        }
+      : null;
+
   // Stable selection callbacks
   const handleSelectZone = useCallback((id: string) => {
     setSelectedZoneId(id);
@@ -48,24 +74,32 @@ export const App: React.FC = () => {
 
       {/* Main Full-Bleed Interactive Workspace */}
       <main className="relative flex-1 w-full h-full overflow-hidden">
-        {/* WebGL GIS Map Layer */}
+        {/* WebGL GIS Map Layer (recolors via displayZones prop) */}
         <MapErrorBoundary>
           <MapView
             regions={regionsQ.data}
-            zones={zonesQ.data}
+            zones={displayZones}
             events={eventsQ.data}
             selectedZoneId={selectedZoneId}
             onSelectZone={handleSelectZone}
           />
         </MapErrorBoundary>
 
-        {/* Right-Floating Decision-Support & Telemetry Panel */}
+        {/* Right-Floating Decision-Support & Scenario Simulation Panel */}
         <ZonePanel
           zones={zonesQ.data}
           zonesLoading={zonesQ.loading}
           zonesError={zonesQ.error}
           selectedZone={selectedZone}
-          assessment={selectedZone} // Phase 4 simulator seam: pass simulated ?? selectedZone
+          assessment={assessment}
+          simulation={scenario.simulation}
+          scenarioValues={scenario.values}
+          setScenarioValues={scenario.setValues}
+          simLoading={scenario.simLoading}
+          simError={scenario.simError}
+          isScenarioModified={scenario.isModified}
+          scenarioAvailable={scenario.available}
+          onResetScenario={scenario.reset}
           environment={envQ.data}
           envLoading={envQ.loading}
           envError={envQ.error}
