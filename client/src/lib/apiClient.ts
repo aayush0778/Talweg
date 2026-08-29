@@ -5,6 +5,7 @@ import {
   EnvironmentObservation,
   HealthResponse,
   RiskPredictionResponse,
+  PredictRiskRequest,
   SimulateRiskRequest,
   ApiErrorResponse,
 } from '../types/api';
@@ -124,6 +125,10 @@ export function fetchEnvironment(zoneId: string): Promise<EnvironmentObservation
 
 export function fetchHealth(): Promise<HealthResponse> {
   return apiGet<HealthResponse>('/api/health');
+}
+
+export function predictRisk(req: PredictRiskRequest): Promise<RiskPredictionResponse> {
+  return apiPost<RiskPredictionResponse>('/api/risk/predict', req);
 }
 
 export function simulateRisk(req: SimulateRiskRequest): Promise<RiskPredictionResponse> {

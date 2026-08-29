@@ -84,6 +84,10 @@ export interface RiskPredictionResponse {
   data_source: string;
 }
 
+export interface PredictRiskRequest {
+  zone_id: string;
+}
+
 export interface SimulateRiskRequest {
   zone_id: string;
   rainfall_24h?: number;
