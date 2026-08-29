@@ -88,3 +88,23 @@ export interface AlertResponse {
   status: 'active' | 'acknowledged' | 'resolved';
   created_at: string;
 }
+
+export interface CopilotAskRequest {
+  zone_id: string;
+  question: string;
+}
+
+export interface CopilotResponse {
+  answer: string;
+  evidence: {
+    zone_id: string;
+    zone_name: string;
+    risk_score: number | null;
+    risk_level: string | null;
+    top_factors: { factor: string; contribution: number }[];
+    recent_events: { date: string; description: string | null }[];
+    data_source: string;
+  };
+  source: 'llm' | 'deterministic';
+  timestamp: string;
+}

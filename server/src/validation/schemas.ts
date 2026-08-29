@@ -85,8 +85,19 @@ export const alertBodySchema = z
   })
   .strict();
 
+export const copilotBodySchema = z
+  .object({
+    zone_id: idSchema,
+    question: z
+      .string({ required_error: 'Question is required' })
+      .min(5, 'Question must be at least 5 characters')
+      .max(500, 'Question cannot exceed 500 characters'),
+  })
+  .strict();
+
 export type RiskBodyInput = z.infer<typeof riskBodySchema>;
 export type EventsQueryInput = z.infer<typeof eventsQuerySchema>;
 export type ZonesQueryInput = z.infer<typeof zonesQuerySchema>;
 export type AlertsQueryInput = z.infer<typeof alertsQuerySchema>;
 export type AlertBodyInput = z.infer<typeof alertBodySchema>;
+export type CopilotBodyInput = z.infer<typeof copilotBodySchema>;
