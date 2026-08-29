@@ -7,6 +7,7 @@ import riskZonesRouter from './routes/riskZones';
 import eventsRouter from './routes/events';
 import environmentRouter from './routes/environment';
 import riskRouter from './routes/risk';
+import { alertsRouter } from './routes/alerts';
 
 /**
  * Express application factory.
@@ -27,6 +28,7 @@ export function createApp(): Express {
   app.use('/api', eventsRouter);
   app.use('/api', environmentRouter);
   app.use('/api', riskRouter);
+  app.use('/api', alertsRouter);
 
   // --- Centralized Error Handling (must be registered last) ---
   app.use(errorHandler);
