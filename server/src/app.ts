@@ -8,6 +8,7 @@ import eventsRouter from './routes/events';
 import environmentRouter from './routes/environment';
 import riskRouter from './routes/risk';
 import { alertsRouter } from './routes/alerts';
+import { copilotRouter } from './routes/copilot';
 
 /**
  * Express application factory.
@@ -29,6 +30,7 @@ export function createApp(): Express {
   app.use('/api', environmentRouter);
   app.use('/api', riskRouter);
   app.use('/api', alertsRouter);
+  app.use('/api', copilotRouter);
 
   // --- Centralized Error Handling (must be registered last) ---
   app.use(errorHandler);
