@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { isAtBaseline, buildSimulateRequest, applySimulationToZones } from './scenario';
+import {
+  isAtBaseline,
+  envBelongsToZone,
+  buildSimulateRequest,
+  applySimulationToZones,
+} from './scenario';
 import { RiskZone, EnvironmentObservation, RiskPredictionResponse } from '../types/api';
 
 describe('Scenario Pure Logic (scenario.ts)', () => {
@@ -68,6 +73,22 @@ describe('Scenario Pure Logic (scenario.ts)', () => {
     it('returns false when observation is null', () => {
       const values = { rainfall_24h: 85, rainfall_3d: 180, soil_moisture: 0.78 };
       expect(isAtBaseline(values, null)).toBe(false);
+    });
+  });
+
+  describe('envBelongsToZone', () => {
+    it('returns true when the observation zone_id matches the zone', () => {
+      expect(envBelongsToZone('gangtok', mockEnv)).toBe(true);
+    });
+
+    it('returns false for a stale observation belonging to a different zone', () => {
+      expect(envBelongsToZone('mangan', mockEnv)).toBe(false);
+    });
+
+    it('returns false when zone or observation is null', () => {
+      expect(envBelongsToZone(null, mockEnv)).toBe(false);
+      expect(envBelongsToZone('gangtok', null)).toBe(false);
+      expect(envBelongsToZone(null, null)).toBe(false);
     });
   });
 

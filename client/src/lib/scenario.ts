@@ -15,6 +15,18 @@ export function isAtBaseline(v: ScenarioValues, env: EnvironmentObservation | nu
   );
 }
 
+/**
+ * True when the observation belongs to the given zone.
+ * Guards against stale env data during async zone switches
+ * (env still holds the previous zone's observation).
+ */
+export function envBelongsToZone(
+  zoneId: string | null,
+  env: EnvironmentObservation | null
+): boolean {
+  return zoneId !== null && env !== null && env.zone_id === zoneId;
+}
+
 export function buildSimulateRequest(zoneId: string, v: ScenarioValues): SimulateRiskRequest {
   return {
     zone_id: zoneId,

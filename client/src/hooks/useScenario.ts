@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { RiskZone, EnvironmentObservation, RiskPredictionResponse } from '../types/api';
-import { ScenarioValues, isAtBaseline, buildSimulateRequest } from '../lib/scenario';
+import {
+  ScenarioValues,
+  isAtBaseline,
+  envBelongsToZone,
+  buildSimulateRequest,
+} from '../lib/scenario';
 import { simulateRisk } from '../lib/apiClient';
 
 export interface UseScenarioResult {
@@ -24,9 +29,16 @@ export function useScenario(
   const [simError, setSimError] = useState<Error | null>(null);
   const seqRef = useRef(0);
 
-  // (Re)initialize when zone/env changes; always clear scenario
+  // (Re)initialize when the selected zone or its environment changes;
+  // always clears any active scenario.
   useEffect(() => {
-    seqRef.current++; // Invalidate any pending in-flight response
+    // CHANGED: during an async zone switch, env can still hold the PREVIOUS
+    // zone's observation. Skip — the new zone's env will re-trigger this effect.
+    if (zone && env && env.zone_id !== zone.id) return;
+
+    // CHANGED: any in-flight simulate request is now obsolete. Bump the
+    // sequence so its response is discarded even if it lands after this reset.
+    seqRef.current++;
 
     const complete =
       env !== null &&
@@ -46,14 +58,21 @@ export function useScenario(
     setSimulation(null);
     setSimError(null);
     setSimLoading(false);
-  }, [zone?.id, env?.zone_id, env?.timestamp]); // re-inits when zone selection changes or env arrives
+    // CHANGED: zone?.id added — re-initializes on same-zone deselect/reselect
+  }, [zone?.id, env?.zone_id, env?.timestamp]);
 
   // Debounced simulate — runs on every values change
   useEffect(() => {
     if (!zone || !values || !env) return;
 
+    // CHANGED: never simulate against a stale env from a different zone
+    // (brief window during async zone switching)
+    if (!envBelongsToZone(zone.id, env)) return;
+
     if (isAtBaseline(values, env)) {
-      seqRef.current++; // Invalidate pending response so it cannot overwrite baseline
+      // CHANGED: invalidate any in-flight request so a late response cannot
+      // resurrect a scenario after we've returned to baseline
+      seqRef.current++;
       setSimulation(null); // back to observed — no API call needed
       setSimError(null);
       setSimLoading(false);
