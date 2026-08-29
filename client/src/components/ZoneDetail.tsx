@@ -9,6 +9,7 @@ import {
 import { ScenarioValues } from '../lib/scenario';
 import { ScenarioSimulator } from './ScenarioSimulator';
 import { FactorBreakdown } from './FactorBreakdown';
+import { CopilotPanel } from './CopilotPanel';
 import { RiskBadge } from './RiskBadge';
 import { StatusMessage } from './StatusMessage';
 import { getRiskColor } from '../lib/riskColors';
@@ -334,6 +335,9 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
             </div>
           )}
         </div>
+
+        {/* P0-B.3: Constrained AI Copilot Section */}
+        <CopilotPanel zoneId={zone.id} />
       </div>
     </div>
   );
