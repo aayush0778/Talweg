@@ -62,6 +62,31 @@ export const riskBodySchema = z
   })
   .strict();
 
+export const alertsQuerySchema = z
+  .object({
+    status: z.enum(['active', 'acknowledged', 'resolved', 'all']).optional().default('active'),
+    zone_id: idSchema.optional(),
+  })
+  .strict();
+
+export const alertBodySchema = z
+  .object({
+    zone_id: idSchema,
+    severity: z.enum(['LOW', 'MODERATE', 'HIGH', 'SEVERE']),
+    risk_score: z
+      .number({ invalid_type_error: 'risk_score must be a number' })
+      .min(0, 'risk_score must be >= 0')
+      .max(1, 'risk_score must be <= 1'),
+    message: z
+      .string({ required_error: 'message is required' })
+      .min(1, 'message cannot be empty')
+      .max(500, 'message cannot exceed 500 characters'),
+    evidence: z.record(z.unknown()).optional(),
+  })
+  .strict();
+
 export type RiskBodyInput = z.infer<typeof riskBodySchema>;
 export type EventsQueryInput = z.infer<typeof eventsQuerySchema>;
 export type ZonesQueryInput = z.infer<typeof zonesQuerySchema>;
+export type AlertsQueryInput = z.infer<typeof alertsQuerySchema>;
+export type AlertBodyInput = z.infer<typeof alertBodySchema>;

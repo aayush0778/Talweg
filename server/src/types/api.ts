@@ -76,3 +76,15 @@ export interface RiskPredictionResponse {
   inputs_used: RiskPredictionInputs;
   data_source: string;
 }
+
+export interface AlertResponse {
+  id: number;
+  zone_id: string;
+  zone_name: string;
+  severity: 'LOW' | 'MODERATE' | 'HIGH' | 'SEVERE';
+  risk_score: number;
+  message: string;
+  evidence: Record<string, unknown> | null;
+  status: 'active' | 'acknowledged' | 'resolved';
+  created_at: string;
+}
