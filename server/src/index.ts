@@ -1,21 +1,8 @@
-import express from 'express';
-import cors from 'cors';
 import { config } from './config';
 import { testConnection } from './db';
-import { errorHandler } from './middleware/errorHandler';
-import healthRouter from './routes/health';
+import { createApp } from './app';
 
-const app = express();
-
-// --- Middleware ---
-app.use(cors());
-app.use(express.json());
-
-// --- Routes ---
-app.use('/api', healthRouter);
-
-// --- Error handling (must be registered last) ---
-app.use(errorHandler);
+const app = createApp();
 
 // --- Startup ---
 async function start(): Promise<void> {

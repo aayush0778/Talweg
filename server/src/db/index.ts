@@ -7,6 +7,8 @@ import { config } from '../config';
  */
 export const pool = new Pool({
   connectionString: config.databaseUrl,
+  connectionTimeoutMillis: 5000,
+  statement_timeout: 5000,
 });
 
 /**
