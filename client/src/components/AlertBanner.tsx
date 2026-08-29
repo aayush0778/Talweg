@@ -41,7 +41,7 @@ export const AlertBanner: React.FC<AlertBannerProps> = ({ alerts, onSelectZone }
           <div
             key={alert.id}
             onClick={() => onSelectZone(alert.zone_id)}
-            className={`group flex flex-col p-3 rounded-xl bg-slate-900/95 backdrop-blur-md border border-slate-800 border-l-4 ${borderStyle} shadow-2xl hover:bg-slate-850 hover:border-slate-700 transition cursor-pointer`}
+            className={`group flex flex-col p-3 rounded-xl bg-slate-900/95 backdrop-blur-md border border-slate-800 border-l-4 ${borderStyle} shadow-2xl hover:bg-slate-800 hover:border-slate-700 transition cursor-pointer`}
           >
             <div className="flex items-center justify-between gap-2 mb-1">
               <div className="flex items-center gap-2">

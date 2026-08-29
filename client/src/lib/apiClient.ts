@@ -8,6 +8,8 @@ import {
   PredictRiskRequest,
   SimulateRiskRequest,
   AlertResponse,
+  CopilotAskRequest,
+  CopilotResponse,
   ApiErrorResponse,
 } from '../types/api';
 
@@ -146,4 +148,8 @@ export function predictRisk(req: PredictRiskRequest): Promise<RiskPredictionResp
 
 export function simulateRisk(req: SimulateRiskRequest): Promise<RiskPredictionResponse> {
   return apiPost<RiskPredictionResponse>('/api/risk/simulate', req);
+}
+
+export function askCopilot(req: CopilotAskRequest): Promise<CopilotResponse> {
+  return apiPost<CopilotResponse>('/api/copilot/ask', req);
 }
