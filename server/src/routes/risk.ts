@@ -5,6 +5,7 @@ import { query } from '../db/query';
 import { riskBodySchema } from '../validation/schemas';
 import { calculateRisk } from '../services/riskEngine';
 import { resolveRiskInput, ObservationRow } from '../services/riskInput';
+import { syncAlertForZone } from '../services/alertSync';
 import { RiskPredictionResponse } from '../types/api';
 
 const router = Router();
@@ -76,6 +77,19 @@ async function computeZoneRisk(body: unknown): Promise<RiskPredictionResponse> {
     overrides.slope !== undefined;
 
   const dataSource = hasUserOverrides && !obsRow ? 'user_provided' : (obsRow?.source ?? 'synthetic_seed');
+
+  // 7. Server-authoritative Alert Synchronization (best-effort, non-fatal side effect)
+  try {
+    await syncAlertForZone(zone.id, zone.name, calc, {
+      risk_score: calc.risk_score,
+      risk_level: calc.risk_level,
+      inputs_used: resolved.input,
+      data_source: dataSource,
+      engine: calc.engine,
+    });
+  } catch (err) {
+    console.warn('[alerts] sync failed (non-fatal):', err instanceof Error ? err.message : err);
+  }
 
   return {
     zone_id: zone.id,

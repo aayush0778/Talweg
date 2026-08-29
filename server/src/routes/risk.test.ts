@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { Server } from 'http';
 import { AddressInfo } from 'net';
 import { createApp } from '../app';
-import { RiskPredictionResponse } from '../types/api';
+import { query } from '../db/query';
+import { RiskPredictionResponse, AlertResponse } from '../types/api';
 
 describe('POST /api/risk/predict & /api/risk/simulate (Integration Tests)', () => {
   let server: Server;
@@ -120,5 +121,120 @@ describe('POST /api/risk/predict & /api/risk/simulate (Integration Tests)', () =
     assert.equal(res.status, 400);
     const data = (await res.json()) as { error: { code: string; message: string } };
     assert.equal(data.error.code, 'VALIDATION_ERROR');
+  });
+});
+
+describe('Alert Sync via risk computation', () => {
+  let server: Server;
+  let baseUrl: string;
+
+  before(async () => {
+    await query('DELETE FROM alerts');
+
+    const app = createApp();
+    await new Promise<void>((resolve) => {
+      server = app.listen(0, () => {
+        const port = (server.address() as AddressInfo).port;
+        baseUrl = `http://127.0.0.1:${port}`;
+        resolve();
+      });
+    });
+  });
+
+  after(async () => {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  });
+
+  it('predicting gangtok baseline (MODERATE) creates NO alert', async () => {
+    const predictRes = await fetch(`${baseUrl}/api/risk/predict`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ zone_id: 'gangtok' }),
+    });
+    assert.equal(predictRes.status, 200);
+
+    const alertsRes = await fetch(`${baseUrl}/api/alerts?zone_id=gangtok&status=active`);
+    assert.equal(alertsRes.status, 200);
+    const alerts = (await alertsRes.json()) as AlertResponse[];
+    assert.equal(alerts.length, 0);
+  });
+
+  it('simulating gangtok with rainfall_24h: 150 (HIGH) creates exactly ONE active HIGH alert', async () => {
+    const simRes = await fetch(`${baseUrl}/api/risk/simulate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ zone_id: 'gangtok', rainfall_24h: 150 }),
+    });
+    assert.equal(simRes.status, 200);
+
+    const alertsRes = await fetch(`${baseUrl}/api/alerts?zone_id=gangtok&status=active`);
+    assert.equal(alertsRes.status, 200);
+    const alerts = (await alertsRes.json()) as AlertResponse[];
+    assert.equal(alerts.length, 1);
+    assert.equal(alerts[0].zone_id, 'gangtok');
+    assert.equal(alerts[0].severity, 'HIGH');
+    assert.match(alerts[0].message, /Gangtok Corridor/);
+    assert.match(alerts[0].message, /escalated to HIGH/);
+  });
+
+  it('simulating again at same HIGH level updates rather than duplicates', async () => {
+    const simRes = await fetch(`${baseUrl}/api/risk/simulate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ zone_id: 'gangtok', rainfall_24h: 160 }),
+    });
+    assert.equal(simRes.status, 200);
+
+    const alertsRes = await fetch(`${baseUrl}/api/alerts?zone_id=gangtok&status=active`);
+    assert.equal(alertsRes.status, 200);
+    const alerts = (await alertsRes.json()) as AlertResponse[];
+    assert.equal(alerts.length, 1);
+    assert.equal(alerts[0].severity, 'HIGH');
+  });
+
+  it('simulating gangtok all-sliders-max (SEVERE) supersedes with single SEVERE alert', async () => {
+    const simRes = await fetch(`${baseUrl}/api/risk/simulate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        zone_id: 'gangtok',
+        rainfall_24h: 200,
+        rainfall_3d: 500,
+        soil_moisture: 1.0,
+      }),
+    });
+    assert.equal(simRes.status, 200);
+
+    const alertsRes = await fetch(`${baseUrl}/api/alerts?zone_id=gangtok&status=active`);
+    assert.equal(alertsRes.status, 200);
+    const alerts = (await alertsRes.json()) as AlertResponse[];
+    assert.equal(alerts.length, 1);
+    assert.equal(alerts[0].severity, 'SEVERE');
+    assert.match(alerts[0].message, /escalated to SEVERE/);
+
+    // Old alerts are marked resolved
+    const allRes = await fetch(`${baseUrl}/api/alerts?zone_id=gangtok&status=all`);
+    const allAlerts = (await allRes.json()) as AlertResponse[];
+    const resolved = allAlerts.filter((a) => a.status === 'resolved');
+    assert.ok(resolved.length >= 1);
+  });
+
+  it('simulating back below HIGH resolves the active alert', async () => {
+    const simRes = await fetch(`${baseUrl}/api/risk/simulate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        zone_id: 'gangtok',
+        rainfall_24h: 20,
+        rainfall_3d: 50,
+        soil_moisture: 0.2,
+      }),
+    });
+    assert.equal(simRes.status, 200);
+
+    const alertsRes = await fetch(`${baseUrl}/api/alerts?zone_id=gangtok&status=active`);
+    assert.equal(alertsRes.status, 200);
+    const alerts = (await alertsRes.json()) as AlertResponse[];
+    assert.equal(alerts.length, 0);
   });
 });
