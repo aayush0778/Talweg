@@ -11,7 +11,7 @@ SIH26001 — Prototype decision-support system for landslide risk assessment in 
 | Layer | Technology |
 |---|---|
 | Frontend | React, Vite, TypeScript, Tailwind CSS, MapLibre GL JS, Recharts |
-| Backend | Node.js, Express, TypeScript |
+| Backend | Node.js, Express, TypeScript, Zod, pg |
 | Database | PostgreSQL + PostGIS |
 | ML (future) | Python, FastAPI, scikit-learn |
 
@@ -52,13 +52,17 @@ cp .env.example .env
 cd server && npm install
 cd ../client && npm install
 
-# 4. Run migrations
+# 4. Run migrations and seed data
 cd server && npm run migrate
+cd server && npm run seed
 
-# 5. Start the backend
+# 5. Run tests
+cd server && npm test
+
+# 6. Start the backend
 cd server && npm run dev
 
-# 6. Start the frontend (separate terminal)
+# 7. Start the frontend (separate terminal)
 cd client && npm run dev
 ```
 
@@ -67,8 +71,8 @@ Open http://localhost:5173 in your browser.
 ## Project Status
 
 - [x] Phase 0: Project scaffolding & foundation
-- [ ] Phase 1: PostGIS schema + seed data + deterministic risk engine
-- [ ] Phase 2: REST API endpoints (P0-A)
+- [x] Phase 1: PostGIS schema + seed data + deterministic risk engine
+- [x] Phase 2: REST API endpoints (P0-A)
 - [ ] Phase 3: GIS dashboard (P0-A)
 - [ ] Phase 4: P0-A integration + rainfall simulator
 - [ ] Phase 5: ML training + FastAPI service
