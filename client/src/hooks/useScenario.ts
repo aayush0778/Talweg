@@ -26,6 +26,8 @@ export function useScenario(
 
   // (Re)initialize when zone/env changes; always clear scenario
   useEffect(() => {
+    seqRef.current++; // Invalidate any pending in-flight response
+
     const complete =
       env !== null &&
       env.rainfall_24h !== null &&
@@ -44,13 +46,14 @@ export function useScenario(
     setSimulation(null);
     setSimError(null);
     setSimLoading(false);
-  }, [env?.zone_id, env?.timestamp]); // re-inits when env for a new zone arrives
+  }, [zone?.id, env?.zone_id, env?.timestamp]); // re-inits when zone selection changes or env arrives
 
   // Debounced simulate — runs on every values change
   useEffect(() => {
     if (!zone || !values || !env) return;
 
     if (isAtBaseline(values, env)) {
+      seqRef.current++; // Invalidate pending response so it cannot overwrite baseline
       setSimulation(null); // back to observed — no API call needed
       setSimError(null);
       setSimLoading(false);
