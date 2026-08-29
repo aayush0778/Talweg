@@ -38,18 +38,16 @@ async function seed(): Promise<void> {
     await client.query('COMMIT');
 
     // Verify counts
-    const counts = await Promise.all([
-      client.query('SELECT COUNT(*) FROM regions'),
-      client.query('SELECT COUNT(*) FROM risk_zones'),
-      client.query('SELECT COUNT(*) FROM landslide_events'),
-      client.query('SELECT COUNT(*) FROM environmental_observations'),
-    ]);
+    const rCount = await client.query('SELECT COUNT(*) FROM regions');
+    const zCount = await client.query('SELECT COUNT(*) FROM risk_zones');
+    const eCount = await client.query('SELECT COUNT(*) FROM landslide_events');
+    const oCount = await client.query('SELECT COUNT(*) FROM environmental_observations');
 
     console.log('[seed] Done:');
-    console.log(`  regions:          ${counts[0].rows[0].count}`);
-    console.log(`  risk_zones:       ${counts[1].rows[0].count}`);
-    console.log(`  landslide_events: ${counts[2].rows[0].count}`);
-    console.log(`  env_observations: ${counts[3].rows[0].count}`);
+    console.log(`  regions:          ${rCount.rows[0].count}`);
+    console.log(`  risk_zones:       ${zCount.rows[0].count}`);
+    console.log(`  landslide_events: ${eCount.rows[0].count}`);
+    console.log(`  env_observations: ${oCount.rows[0].count}`);
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('[seed] Seed failed:', err);
