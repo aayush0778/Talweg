@@ -1,5 +1,12 @@
 import React from 'react';
-import { RiskZone, EnvironmentObservation, LandslideEvent, RiskLevel } from '../types/api';
+import {
+  RiskZone,
+  EnvironmentObservation,
+  LandslideEvent,
+  RiskLevel,
+  RiskPredictionResponse,
+} from '../types/api';
+import { ScenarioValues } from '../lib/scenario';
 import { ZoneList } from './ZoneList';
 import { ZoneDetail } from './ZoneDetail';
 import { StatusMessage } from './StatusMessage';
@@ -14,6 +21,14 @@ interface ZonePanelProps {
     risk_level: RiskLevel | null;
     timestamp: string | null;
   } | null;
+  simulation: RiskPredictionResponse | null;
+  scenarioValues: ScenarioValues | null;
+  setScenarioValues: React.Dispatch<React.SetStateAction<ScenarioValues | null>>;
+  simLoading: boolean;
+  simError: Error | null;
+  isScenarioModified: boolean;
+  scenarioAvailable: boolean;
+  onResetScenario: () => void;
   environment: EnvironmentObservation | null;
   envLoading: boolean;
   envError: Error | null;
@@ -31,6 +46,14 @@ export const ZonePanel: React.FC<ZonePanelProps> = ({
   zonesError,
   selectedZone,
   assessment = null,
+  simulation,
+  scenarioValues,
+  setScenarioValues,
+  simLoading,
+  simError,
+  isScenarioModified,
+  scenarioAvailable,
+  onResetScenario,
   environment,
   envLoading,
   envError,
@@ -45,7 +68,11 @@ export const ZonePanel: React.FC<ZonePanelProps> = ({
     <aside className="absolute top-20 right-6 bottom-6 w-[400px] z-10 bg-slate-900/90 backdrop-blur-md border border-slate-800 shadow-2xl rounded-2xl flex flex-col overflow-hidden pointer-events-auto">
       {zonesLoading ? (
         <div className="p-6 flex flex-col items-center justify-center h-full">
-          <StatusMessage type="loading" title="Connecting to GIS Repository" message="Loading risk zones..." />
+          <StatusMessage
+            type="loading"
+            title="Connecting to GIS Repository"
+            message="Loading risk zones..."
+          />
         </div>
       ) : zonesError ? (
         <div className="p-6 flex flex-col items-center justify-center h-full">
@@ -60,6 +87,14 @@ export const ZonePanel: React.FC<ZonePanelProps> = ({
         <ZoneDetail
           zone={selectedZone}
           assessment={assessment ?? selectedZone}
+          simulation={simulation}
+          scenarioValues={scenarioValues}
+          setScenarioValues={setScenarioValues}
+          simLoading={simLoading}
+          simError={simError}
+          isScenarioModified={isScenarioModified}
+          scenarioAvailable={scenarioAvailable}
+          onResetScenario={onResetScenario}
           environment={environment}
           envLoading={envLoading}
           envError={envError}

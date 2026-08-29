@@ -1,5 +1,13 @@
 import React from 'react';
-import { RiskZone, EnvironmentObservation, LandslideEvent, RiskLevel } from '../types/api';
+import {
+  RiskZone,
+  EnvironmentObservation,
+  LandslideEvent,
+  RiskLevel,
+  RiskPredictionResponse,
+} from '../types/api';
+import { ScenarioValues } from '../lib/scenario';
+import { ScenarioSimulator } from './ScenarioSimulator';
 import { RiskBadge } from './RiskBadge';
 import { StatusMessage } from './StatusMessage';
 import { getRiskColor } from '../lib/riskColors';
@@ -8,14 +16,22 @@ import { scoreToPercent, formatObsTimestamp, formatEventDate } from '../lib/form
 interface ZoneDetailProps {
   zone: RiskZone;
   /**
-   * Assessment prop: passed from selectedZone baseline in Phase 3,
-   * or from live simulation in Phase 4.
+   * Assessment prop: passed from simulation in Phase 4,
+   * falling back to zone baseline.
    */
   assessment: {
     risk_score: number | null;
     risk_level: RiskLevel | null;
     timestamp: string | null;
   } | null;
+  simulation: RiskPredictionResponse | null;
+  scenarioValues: ScenarioValues | null;
+  setScenarioValues: React.Dispatch<React.SetStateAction<ScenarioValues | null>>;
+  simLoading: boolean;
+  simError: Error | null;
+  isScenarioModified: boolean;
+  scenarioAvailable: boolean;
+  onResetScenario: () => void;
   environment: EnvironmentObservation | null;
   envLoading: boolean;
   envError: Error | null;
@@ -28,6 +44,14 @@ interface ZoneDetailProps {
 export const ZoneDetail: React.FC<ZoneDetailProps> = ({
   zone,
   assessment,
+  simulation,
+  scenarioValues,
+  setScenarioValues,
+  simLoading,
+  simError,
+  isScenarioModified,
+  scenarioAvailable,
+  onResetScenario,
   environment,
   envLoading,
   envError,
@@ -39,7 +63,10 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
   const currentRiskScore = assessment?.risk_score ?? zone.risk_score;
   const currentRiskLevel = assessment?.risk_level ?? zone.risk_level;
   const pct = scoreToPercent(currentRiskScore);
+  const baselinePct = scoreToPercent(zone.risk_score);
   const color = getRiskColor(currentRiskLevel);
+  const isScenarioActive = simulation !== null;
+  const levelChanged = isScenarioActive && currentRiskLevel !== zone.risk_level;
 
   return (
     <div className="flex flex-col h-full">
@@ -64,22 +91,27 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
         <div>
           <div className="flex items-start justify-between gap-2 mb-1.5">
             <h2 className="text-base font-bold text-white tracking-tight">{zone.name}</h2>
-            <RiskBadge level={currentRiskLevel} />
+            <RiskBadge level={currentRiskLevel} className="transition-all duration-500" />
           </div>
           {zone.description && (
             <p className="text-xs text-slate-300 leading-relaxed">{zone.description}</p>
           )}
         </div>
 
-        {/* Risk Score Card */}
+        {/* Risk Score Card (with OBSERVED vs SCENARIO State) */}
         <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 shadow-inner space-y-2.5">
-          <div className="flex items-baseline justify-between">
+          <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
               Landslide Risk Assessment
             </span>
-            {currentRiskScore !== null && (
-              <span className="text-xs font-mono text-slate-500">
-                raw: {currentRiskScore.toFixed(3)}
+
+            {isScenarioActive ? (
+              <span className="px-2 py-0.5 rounded-full bg-amber-950/90 border border-amber-700/70 text-amber-300 text-[10px] font-bold tracking-wider uppercase animate-pulse">
+                Scenario
+              </span>
+            ) : (
+              <span className="px-2 py-0.5 rounded-full bg-slate-800/90 border border-slate-700/70 text-slate-400 text-[10px] font-semibold tracking-wider uppercase">
+                Observed
               </span>
             )}
           </div>
@@ -87,32 +119,69 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
           {pct !== null ? (
             <div>
               <div className="flex items-baseline gap-2 mb-2">
-                <span className="text-3xl font-black text-white tracking-tight">{pct}</span>
+                <span className="text-3xl font-black text-white tracking-tight transition-all duration-500">
+                  {pct}
+                </span>
                 <span className="text-sm font-semibold text-slate-500">/ 100</span>
-                <span className="text-xs font-medium text-slate-400 ml-auto capitalize">
+                <span className="text-xs font-medium text-slate-300 ml-auto capitalize transition-colors duration-500">
                   {currentRiskLevel?.toLowerCase()} Severity Index
                 </span>
               </div>
-              <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+
+              {/* Progress Bar */}
+              <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden mb-2">
                 <div
-                  className="h-full rounded-full transition-all duration-700"
+                  className="h-full rounded-full transition-all duration-500"
                   style={{
                     width: `${pct}%`,
                     backgroundColor: color,
                   }}
                 />
               </div>
+
+              {/* Scenario Baseline Transition Sub-line */}
+              {isScenarioActive && (
+                <div className="pt-2 border-t border-slate-800/80 space-y-1 text-xs">
+                  <div className="flex items-center justify-between text-[11px] text-slate-400">
+                    <span>Baseline (measured):</span>
+                    <span className="font-mono text-slate-300 font-medium">
+                      {zone.risk_level ?? '—'} · {baselinePct}/100
+                    </span>
+                  </div>
+
+                  {levelChanged && (
+                    <div className="flex items-center justify-between text-xs font-semibold">
+                      <span className="text-slate-400 text-[11px]">Risk Level Transition:</span>
+                      <span className="text-amber-400 font-mono tracking-tight">
+                        {zone.risk_level} → {currentRiskLevel}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-xs text-slate-400 italic py-2">Risk evaluation pending telemetry</div>
           )}
         </div>
 
-        {/* Telemetry Grid */}
+        {/* Live Rainfall Scenario Simulator */}
+        <ScenarioSimulator
+          values={scenarioValues}
+          setValues={setScenarioValues}
+          environment={environment}
+          simLoading={simLoading}
+          simError={simError}
+          isModified={isScenarioModified}
+          available={scenarioAvailable}
+          onReset={onResetScenario}
+        />
+
+        {/* Telemetry Grid (Always Shows Measured Baseline Observations) */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Environmental Telemetry
+              Environmental Telemetry (Observed)
             </h3>
             {environment?.timestamp && (
               <span className="text-[10px] text-slate-500 font-mono">
