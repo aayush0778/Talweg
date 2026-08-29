@@ -14,4 +14,8 @@ export const config = {
   riskEngineMode: (process.env.RISK_ENGINE_MODE || 'deterministic') as
     | 'deterministic'
     | 'ml',
+  llmApiKey: process.env.LLM_API_KEY || '',
+  llmBaseUrl: process.env.LLM_BASE_URL || 'https://api.openai.com/v1',
+  llmModel: process.env.LLM_MODEL || 'gpt-4o-mini',
+  copilotTimeoutMs: parseInt(process.env.COPILOT_TIMEOUT_MS || '8000', 10),
 } as const;
