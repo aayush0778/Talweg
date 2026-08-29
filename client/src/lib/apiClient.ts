@@ -7,6 +7,7 @@ import {
   RiskPredictionResponse,
   PredictRiskRequest,
   SimulateRiskRequest,
+  AlertResponse,
   ApiErrorResponse,
 } from '../types/api';
 
@@ -125,6 +126,18 @@ export function fetchEnvironment(zoneId: string): Promise<EnvironmentObservation
 
 export function fetchHealth(): Promise<HealthResponse> {
   return apiGet<HealthResponse>('/api/health');
+}
+
+export function fetchAlerts(params?: {
+  status?: string;
+  zone_id?: string;
+}): Promise<AlertResponse[]> {
+  const searchParams = new URLSearchParams();
+  if (params?.status) searchParams.set('status', params.status);
+  if (params?.zone_id) searchParams.set('zone_id', params.zone_id);
+
+  const qs = searchParams.toString();
+  return apiGet<AlertResponse[]>(`/api/alerts${qs ? `?${qs}` : ''}`);
 }
 
 export function predictRisk(req: PredictRiskRequest): Promise<RiskPredictionResponse> {

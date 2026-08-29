@@ -95,6 +95,18 @@ export interface SimulateRiskRequest {
   soil_moisture?: number;
 }
 
+export interface AlertResponse {
+  id: number;
+  zone_id: string;
+  zone_name: string;
+  severity: RiskLevel;
+  risk_score: number;
+  message: string;
+  evidence: Record<string, unknown> | null;
+  status: 'active' | 'acknowledged' | 'resolved';
+  created_at: string;
+}
+
 export interface HealthResponse {
   status: 'ok' | 'degraded';
   timestamp: string;
