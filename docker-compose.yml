@@ -16,5 +16,21 @@ services:
       timeout: 5s
       retries: 5
 
+  ml:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: slopeguard-ml
+    ports:
+      # Internal service — Node-only access, never browser-exposed
+      - "127.0.0.1:8000:8000"
+    environment:
+      - PORT=8000
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
 volumes:
   pgdata:

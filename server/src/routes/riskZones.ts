@@ -3,7 +3,7 @@ import { asyncHandler } from '../middleware/asyncHandler';
 import { ApiError } from '../middleware/apiError';
 import { query } from '../db/query';
 import { zonesQuerySchema, idParamSchema } from '../validation/schemas';
-import { calculateRisk } from '../services/riskEngine';
+import { evaluateRisk } from '../services/riskEvaluator';
 import { resolveRiskInput, ObservationRow } from '../services/riskInput';
 import { RiskZoneResponse } from '../types/api';
 
@@ -28,7 +28,7 @@ interface RiskZoneRow {
   historical_density: number;
 }
 
-function mapRowToResponse(row: RiskZoneRow): RiskZoneResponse {
+async function mapRowToResponse(row: RiskZoneRow): Promise<RiskZoneResponse> {
   let riskScore: number | null = null;
   let riskLevel: RiskZoneResponse['risk_level'] = null;
 
@@ -44,7 +44,7 @@ function mapRowToResponse(row: RiskZoneRow): RiskZoneResponse {
 
   const resolved = resolveRiskInput(obs, row.base_slope, row.historical_density, {});
   if (resolved.ok) {
-    const calc = calculateRisk(resolved.input);
+    const calc = await evaluateRisk(resolved.input);
     riskScore = calc.risk_score;
     riskLevel = calc.risk_level;
   }
@@ -95,6 +95,7 @@ const BASE_ZONE_QUERY = `
 /**
  * GET /api/risk-zones
  * Returns all risk zones with their latest environmental assessment and risk level.
+ * Uses Promise.all to parallelize evaluations across zones within a single timeout window.
  */
 router.get(
   '/risk-zones',
@@ -108,7 +109,7 @@ router.get(
     const sql = `${BASE_ZONE_QUERY} WHERE ($1::text IS NULL OR z.region_id = $1) ORDER BY z.name;`;
     const result = await query<RiskZoneRow>(sql, [region_id || null]);
 
-    const zones: RiskZoneResponse[] = result.rows.map(mapRowToResponse);
+    const zones: RiskZoneResponse[] = await Promise.all(result.rows.map(mapRowToResponse));
     res.json(zones);
   })
 );
@@ -133,7 +134,8 @@ router.get(
       throw ApiError.notFound(`Risk zone '${id}' not found`, 'ZONE_NOT_FOUND');
     }
 
-    res.json(mapRowToResponse(result.rows[0]));
+    const zone = await mapRowToResponse(result.rows[0]);
+    res.json(zone);
   })
 );
 

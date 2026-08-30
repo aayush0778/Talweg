@@ -11,6 +11,7 @@ export const config = {
     process.env.DATABASE_URL ||
     'postgresql://postgres:postgres@localhost:5432/slopeguard_dev',
   mlServiceUrl: process.env.ML_SERVICE_URL || 'http://localhost:8000',
+  mlTimeoutMs: parseInt(process.env.ML_TIMEOUT_MS || '1000', 10),
   riskEngineMode: (process.env.RISK_ENGINE_MODE || 'deterministic') as
     | 'deterministic'
     | 'ml',

@@ -105,6 +105,17 @@ describe('Alerts Router Integration Tests (GET & POST /api/alerts)', () => {
   });
 
   it('GET /api/alerts?zone_id=gangtok filters correctly after a manual POST', async () => {
+    await fetch(`${baseUrl}/api/alerts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        zone_id: 'gangtok',
+        severity: 'HIGH',
+        risk_score: 0.65,
+        message: 'Gangtok filter test alert',
+      }),
+    });
+
     const res = await fetch(`${baseUrl}/api/alerts?zone_id=gangtok`);
     assert.equal(res.status, 200);
 

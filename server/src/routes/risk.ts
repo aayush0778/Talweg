@@ -3,7 +3,7 @@ import { asyncHandler } from '../middleware/asyncHandler';
 import { ApiError } from '../middleware/apiError';
 import { query } from '../db/query';
 import { riskBodySchema } from '../validation/schemas';
-import { calculateRisk } from '../services/riskEngine';
+import { evaluateRisk } from '../services/riskEvaluator';
 import { resolveRiskInput, ObservationRow } from '../services/riskInput';
 import { syncAlertForZone } from '../services/alertSync';
 import { RiskPredictionResponse } from '../types/api';
@@ -66,8 +66,8 @@ async function computeZoneRisk(body: unknown): Promise<RiskPredictionResponse> {
     );
   }
 
-  // 5. Calculate risk deterministically in-process
-  const calc = calculateRisk(resolved.input);
+  // 5. Calculate risk via unified evaluator (ML surrogate with automatic in-process deterministic fallback)
+  const calc = await evaluateRisk(resolved.input);
 
   // 6. Determine data source provenance
   const hasUserOverrides =
