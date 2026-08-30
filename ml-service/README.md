@@ -1,35 +1,53 @@
-# ML Service — FastAPI
+# ML Service — FastAPI & Scikit-Learn Surrogate Model
 
-> **Status: NOT IMPLEMENTED** — this is a Phase 5 scaffold.
+> **Status: IMPLEMENTED** — Phase 5 surrogate-model architecture demonstration.
 
-This service will host the trained Random Forest model for landslide risk prediction.
+This microservice hosts a Scikit-Learn `RandomForestRegressor` surrogate model for landslide risk prediction.
 
-## Architecture Role
+## Scientific Honesty & Architecture Role
 
-- Node/Express calls `POST /predict` internally
-- The browser **never** communicates with this service directly
-- If this service is unavailable, Node falls back to the deterministic heuristic
+- **Surrogate Model Role:** As documented in `docs/data_sources.md`, this prototype does not fabricate claims of real sensor ground truth. The Random Forest surrogate model is trained systematically across the 5-factor normalized parameter space to demonstrate the production model-serving pipeline, inference latency, and failover mechanics.
+- **Internal Only:** The browser **never** communicates with this service directly. All calls are routed from Node/Express over internal loopback networking (`127.0.0.1:8000`).
+- **Failover Seam:** If this microservice is unreachable or shut down, Node/Express automatically and silently falls back to the in-process deterministic risk engine with zero downtime.
 
-## Planned Endpoints
+## Endpoints
 
 | Endpoint | Method | Purpose |
 |---|---|---|
-| `/predict` | POST | Run the trained model on input features |
-| `/health` | GET | Service health check |
+| `/predict` | POST | Run surrogate model prediction on input features with domain clamping |
+| `/health` | GET | Service health and model status metadata |
 
-## Directory Structure (planned)
+## Directory Structure
 
 ```
 ml-service/
 ├── app/
-│   ├── main.py          # FastAPI app
-│   ├── model.py          # Model loading + prediction
-│   └── schemas.py        # Pydantic request/response schemas
+│   ├── __init__.py
+│   ├── main.py          # FastAPI application
+│   ├── schemas.py       # Pydantic request/response schemas
+│   └── constants.py     # Domain bounds, weights, and risk thresholds
 ├── training/
-│   ├── data_pipeline.py  # Data cleaning + feature engineering
-│   ├── train.py          # Model training
-│   └── evaluate.py       # Evaluation + metrics
-├── models/               # Saved model artifacts (.joblib)
+│   ├── __init__.py
+│   └── train.py         # Surrogate training script (50k samples, R² > 0.99)
+├── models/              # Model artifacts (.joblib, generated during build, gitignored)
+├── test_app.py          # Pytest test suite
+├── Dockerfile           # Python 3.11-slim container with build-time training
 ├── requirements.txt
 └── README.md
+```
+
+## Running Locally
+
+```bash
+# 1. Install dependencies
+pip install -r requirements.txt
+
+# 2. Train surrogate model (required before first local run or pytest)
+python training/train.py
+
+# 3. Run unit tests
+pytest test_app.py
+
+# 4. Start local development server
+uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
