@@ -68,7 +68,7 @@ def health():
     return HealthResponse(
         status="ok" if is_loaded else "degraded",
         model_loaded=is_loaded,
-        model_type=model_bundle.get("model_type", "RandomForestRegressor (Surrogate)") if is_loaded else "unloaded",
+        model_type=model_bundle.get("model_type", "Tree-Ensemble (Surrogate)") if is_loaded else "unloaded",
         version="0.1.0",
     )
 

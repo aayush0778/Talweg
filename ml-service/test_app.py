@@ -33,7 +33,7 @@ def test_health_check(client):
     data = res.json()
     assert data["status"] == "ok"
     assert data["model_loaded"] is True
-    assert "RandomForestRegressor" in data["model_type"]
+    assert "Surrogate" in data["model_type"] or "Regressor" in data["model_type"]
     assert data["version"] == "0.1.0"
 
 
