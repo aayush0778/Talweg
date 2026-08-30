@@ -3,10 +3,10 @@ import { RISK_COLORS } from '../lib/riskColors';
 
 export const MapLegend: React.FC = () => {
   const levels = [
-    { label: 'Low Risk', color: RISK_COLORS.LOW, desc: '< 0.30' },
-    { label: 'Moderate', color: RISK_COLORS.MODERATE, desc: '0.30 – 0.55' },
-    { label: 'High Risk', color: RISK_COLORS.HIGH, desc: '0.56 – 0.79' },
-    { label: 'Severe', color: RISK_COLORS.SEVERE, desc: '≥ 0.80' },
+    { label: 'Low Risk', color: RISK_COLORS.LOW, desc: '≤ 0.30' },
+    { label: 'Moderate', color: RISK_COLORS.MODERATE, desc: '0.31 – 0.56' },
+    { label: 'High Risk', color: RISK_COLORS.HIGH, desc: '0.57 – 0.80' },
+    { label: 'Severe', color: RISK_COLORS.SEVERE, desc: '> 0.80' },
   ];
 
   return (

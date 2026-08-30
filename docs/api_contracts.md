@@ -195,7 +195,7 @@ Latest environmental observation/telemetry for a specified risk zone.
 
 ### POST /api/risk/predict
 
-Calculate current risk for a zone using stored baseline observations and spatial density.
+Calculate current risk for a zone using stored baseline observations and spatial density. Also triggers server-authoritative alert synchronization.
 
 **Request:**
 ```json
@@ -235,7 +235,7 @@ Calculate current risk for a zone using stored baseline observations and spatial
 
 ### POST /api/risk/simulate
 
-What-if scenario simulation (e.g. dragging rainfall slider in UI). Overrides take precedence over stored baseline observation.
+What-if scenario simulation (e.g. dragging rainfall slider in UI). Overrides take precedence over stored baseline observation. Automatically manages active alert status when thresholds are crossed.
 
 **Request:**
 ```json
@@ -274,13 +274,104 @@ What-if scenario simulation (e.g. dragging rainfall slider in UI). Overrides tak
 
 ---
 
-## P0-B Endpoints (Roadmap / Next Layer)
-
-### POST /api/alerts
-Create an alert for a risk zone.
+## P0-B Endpoints
 
 ### GET /api/alerts
-List alerts with optional filters.
+
+List active, acknowledged, or resolved alerts.
+
+**Query parameters:**
+- `status` (optional, enum: `active` | `acknowledged` | `resolved` | `all`, default: `active`)
+- `zone_id` (optional, string) — filter by zone ID
+
+**Response 200:**
+```json
+[
+  {
+    "id": 1,
+    "zone_id": "gangtok",
+    "zone_name": "Gangtok Corridor",
+    "severity": "HIGH",
+    "risk_score": 0.606,
+    "message": "Gangtok Corridor escalated to HIGH risk (61/100). Primary driver: 24h Rainfall.",
+    "evidence": {
+      "engine": "deterministic",
+      "risk_level": "HIGH",
+      "risk_score": 0.606,
+      "data_source": "synthetic_seed",
+      "inputs_used": {
+        "rainfall_24h": 150,
+        "rainfall_3d": 180,
+        "soil_moisture": 0.78,
+        "slope": 35,
+        "historical_density": 5
+      }
+    },
+    "status": "active",
+    "created_at": "2026-08-29T12:00:00.000Z"
+  }
+]
+```
+
+---
+
+### POST /api/alerts
+
+Manually register an alert record for a corridor.
+
+**Request:**
+```json
+{
+  "zone_id": "gangtok",
+  "severity": "HIGH",
+  "risk_score": 0.65,
+  "message": "Gangtok Corridor escalated to HIGH risk (65/100). Primary driver: 24h Rainfall.",
+  "evidence": {
+    "rainfall_24h": 150,
+    "slope": 35
+  }
+}
+```
+
+**Response 201:** Full `AlertResponse` object.
+
+---
 
 ### POST /api/copilot/ask
-Ask the grounded AI Copilot a question.
+
+Ask the constrained AI Copilot for grounded corridor risk explanations or historical incident insights.
+
+**Request:**
+```json
+{
+  "zone_id": "gangtok",
+  "question": "Why is Gangtok at moderate risk and what are the main drivers?"
+}
+```
+
+**Response 200:**
+```json
+{
+  "answer": "Gangtok Corridor is evaluated at MODERATE risk (51/100). The primary risk drivers are 24h Rainfall (25% share) and Soil Saturation (23% share). Current telemetry shows 24h rainfall at 85 mm, 3-day cumulative at 180 mm, and soil saturation at 78%. Note: current data is synthetic demo data (synthetic_seed).",
+  "evidence": {
+    "zone_id": "gangtok",
+    "zone_name": "Gangtok Corridor",
+    "risk_score": 0.508,
+    "risk_level": "MODERATE",
+    "top_factors": [
+      { "factor": "rainfall_24h", "contribution": 0.128 },
+      { "factor": "soil_moisture", "contribution": 0.117 },
+      { "factor": "slope", "contribution": 0.117 }
+    ],
+    "recent_events": [
+      {
+        "date": "2023-10-04",
+        "description": "Monsoon-triggered debris flow along NH10 near Gangtok"
+      }
+    ],
+    "data_source": "synthetic_seed"
+  },
+  "source": "deterministic",
+  "timestamp": "2026-08-29T12:00:00.000Z"
+}
+```

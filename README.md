@@ -13,7 +13,7 @@ SIH26001 — Prototype decision-support system for landslide risk assessment in 
 | Frontend | React, Vite, TypeScript, Tailwind CSS, MapLibre GL JS, Recharts |
 | Backend | Node.js, Express, TypeScript, Zod, pg |
 | Database | PostgreSQL + PostGIS |
-| ML (future) | Python, FastAPI, scikit-learn |
+| ML (Sidecar) | Python, FastAPI, scikit-learn (optional architecture sidecar) |
 
 ## Architecture
 
@@ -56,7 +56,7 @@ cd ../client && npm install
 cd server && npm run migrate
 cd server && npm run seed
 
-# 5. Run tests
+# 5. Run tests (146 tests across backend & frontend)
 cd server && npm test
 cd ../client && npm test
 
@@ -71,17 +71,24 @@ Open http://localhost:5173 in your browser.
 
 ## Project Status
 
-- [x] Phase 0: Project scaffolding & foundation
-- [x] Phase 1: PostGIS schema + seed data + deterministic risk engine
-- [x] Phase 2: REST API endpoints (P0-A)
-- [x] Phase 3: GIS dashboard (P0-A)
-- [x] Phase 4: P0-A integration + rainfall simulator
-- [ ] Phase 5: ML training + FastAPI service
-- [ ] Phase 6: P0-B (explanations, alerts, Copilot)
+- [x] **Phase 0:** Project scaffolding & foundation
+- [x] **Phase 1:** PostGIS schema + seed data + deterministic risk engine
+- [x] **Phase 2:** REST API endpoints (P0-A)
+- [x] **Phase 3:** React GIS dashboard & satellite map (P0-A)
+- [x] **Phase 4:** Live rainfall scenario simulator & sequence guards (P0-A)
+- [x] **P0-B.1:** Risk factor contribution breakdown & explainability
+- [x] **P0-B.2:** Server-authoritative alert generation & active alert banner
+- [x] **P0-B.3:** Grounded AI Copilot with zero-dependency deterministic fallback
+- [ ] **Phase 5 (Next):** ML model surrogate sidecar & architecture demonstration
+
+## Documentation
+
+- [API Contracts](docs/api_contracts.md) — Comprehensive REST specifications and response schemas
+- [100-Second Demo Script](docs/demo_script.md) — Step-by-step presentation and recording script
+- [Data Sources & Provenance](docs/data_sources.md) — NER region selection scorecard and provenance classification
+- [Architecture](docs/architecture.md) — Monorepo system architecture and design principles
 
 ## Data Provenance
-
-See [docs/data_sources.md](docs/data_sources.md) for dataset documentation, provenance, and the NER region selection scorecard.
 
 All data in this prototype is classified as:
 - **REAL** — sourced from published datasets (NASA GLC, CHIRPS, SRTM)
