@@ -10,10 +10,10 @@ SIH26001 — Prototype decision-support system for landslide risk assessment in 
 
 | Layer | Technology |
 |---|---|
-| Frontend | React, Vite, TypeScript, Tailwind CSS, MapLibre GL JS, Recharts |
-| Backend | Node.js, Express, TypeScript, Zod, pg |
-| Database | PostgreSQL + PostGIS |
-| ML (Sidecar) | Python, FastAPI, scikit-learn (optional architecture sidecar) |
+| Frontend | React 19, Vite 6, TypeScript, Tailwind CSS v4, MapLibre GL JS, Recharts |
+| Backend | Node.js 20, Express, TypeScript, Zod, pg |
+| Database | PostgreSQL 16 + PostGIS 3.4 |
+| ML (Sidecar) | Python 3.11/3.14, FastAPI, Scikit-Learn (Random Forest surrogate model) |
 
 ## Architecture
 
@@ -25,24 +25,26 @@ Node/Express (server :3001)
 PostgreSQL/PostGIS (:5432)
 
 Node/Express
-    ↓ internal HTTP (when ML enabled)
-FastAPI ML service (:8000)
+    ↓ internal HTTP (127.0.0.1:8000 only)
+FastAPI ML surrogate service (:8000)
 ```
 
 The browser communicates **only** with the Node/Express backend.
 FastAPI is an internal service for ML inference only — never browser-accessible.
+If the ML service is down or times out, Node/Express automatically and silently falls back to the in-process deterministic risk engine with zero downtime.
 
 ## Quick Start
 
 ### Prerequisites
 
 - Node.js 20+
-- Docker & Docker Compose (for PostgreSQL/PostGIS)
+- Docker & Docker Compose (for PostgreSQL/PostGIS and ML sidecar)
+- Python 3.11+ (if running ML service locally outside Docker)
 
 ### Setup
 
 ```bash
-# 1. Start the database
+# 1. Start the database (and optionally ML service)
 docker compose up -d
 
 # 2. Configure environment
@@ -51,14 +53,16 @@ cp .env.example .env
 # 3. Install dependencies
 cd server && npm install
 cd ../client && npm install
+cd ../ml-service && pip install -r requirements.txt
 
 # 4. Run migrations and seed data
 cd server && npm run migrate
 cd server && npm run seed
 
-# 5. Run tests (146 tests across backend & frontend)
-cd server && npm test
-cd ../client && npm test
+# 5. Run tests (155 automated tests across all tiers)
+cd server && npm test         # 115 tests
+cd ../client && npm test      # 35 tests
+cd ../ml-service && pytest    # 5 tests
 
 # 6. Start the backend
 cd server && npm run dev
@@ -79,7 +83,7 @@ Open http://localhost:5173 in your browser.
 - [x] **P0-B.1:** Risk factor contribution breakdown & explainability
 - [x] **P0-B.2:** Server-authoritative alert generation & active alert banner
 - [x] **P0-B.3:** Grounded AI Copilot with zero-dependency deterministic fallback
-- [ ] **Phase 5 (Next):** ML model surrogate sidecar & architecture demonstration
+- [x] **Phase 5:** Honestly-scoped ML surrogate sidecar & live failover seam
 
 ## Documentation
 

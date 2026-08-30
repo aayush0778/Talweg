@@ -71,6 +71,7 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
   const color = getRiskColor(currentRiskLevel);
   const isScenarioActive = simulation !== null;
   const levelChanged = isScenarioActive && currentRiskLevel !== zone.risk_level;
+  const activeEngine = simulation?.engine ?? baselinePrediction?.engine ?? null;
 
   const factors =
     simulation?.contributing_factors ??
@@ -107,22 +108,37 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
           )}
         </div>
 
-        {/* Risk Score Card (with OBSERVED vs SCENARIO State) */}
+        {/* Risk Score Card (with OBSERVED vs SCENARIO State and ML Engine Badge) */}
         <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 shadow-inner space-y-2.5">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
               Landslide Risk Assessment
             </span>
 
-            {isScenarioActive ? (
-              <span className="px-2 py-0.5 rounded-full bg-amber-950/90 border border-amber-700/70 text-amber-300 text-[10px] font-bold tracking-wider uppercase animate-pulse">
-                Scenario
-              </span>
-            ) : (
-              <span className="px-2 py-0.5 rounded-full bg-slate-800/90 border border-slate-700/70 text-slate-400 text-[10px] font-semibold tracking-wider uppercase">
-                Observed
-              </span>
-            )}
+            <div className="flex items-center gap-1.5">
+              {activeEngine && (
+                <span
+                  data-testid="engine-badge"
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                    activeEngine === 'ml'
+                      ? 'bg-emerald-950/80 border-emerald-700/60 text-emerald-300'
+                      : 'bg-slate-800/80 border-slate-700/60 text-slate-400'
+                  }`}
+                >
+                  {activeEngine === 'ml' ? 'ML Surrogate (RF)' : 'Deterministic Heuristic'}
+                </span>
+              )}
+
+              {isScenarioActive ? (
+                <span className="px-2 py-0.5 rounded-full bg-amber-950/90 border border-amber-700/70 text-amber-300 text-[10px] font-bold tracking-wider uppercase animate-pulse">
+                  Scenario
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded-full bg-slate-800/90 border border-slate-700/70 text-slate-400 text-[10px] font-semibold tracking-wider uppercase">
+                  Observed
+                </span>
+              )}
+            </div>
           </div>
 
           {pct !== null ? (
