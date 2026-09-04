@@ -1,6 +1,7 @@
 import React from 'react';
 import { RiskZone } from '../types/api';
 import { RiskBadge } from './RiskBadge';
+import { scoreToPercent } from '../lib/format';
 
 interface ZoneComparisonProps {
   zones: RiskZone[];
@@ -12,7 +13,7 @@ export const ZoneComparison: React.FC<ZoneComparisonProps> = ({ zones, onSelectZ
   const highRiskZones = zones.filter(z => z.risk_level === 'HIGH' || z.risk_level === 'SEVERE').length;
   
   const totalScore = zones.reduce((acc, z) => acc + (z.risk_score || 0), 0);
-  const avgScore = totalZones > 0 ? (totalScore / totalZones).toFixed(1) : '0.0';
+  const avgScore = totalZones > 0 ? scoreToPercent(totalScore / totalZones) ?? 0 : 0;
 
   const sortedZones = [...zones].sort((a, b) => (b.risk_score || 0) - (a.risk_score || 0));
 
@@ -47,7 +48,7 @@ export const ZoneComparison: React.FC<ZoneComparisonProps> = ({ zones, onSelectZ
       {/* Bar Chart Section */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {sortedZones.map(zone => {
-          const score = zone.risk_score || 0;
+          const scorePercent = scoreToPercent(zone.risk_score) ?? 0;
           return (
             <div 
               key={zone.id} 
@@ -59,7 +60,7 @@ export const ZoneComparison: React.FC<ZoneComparisonProps> = ({ zones, onSelectZ
                   {zone.name}
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono text-slate-400">{score.toFixed(1)}%</span>
+                  <span className="text-xs font-mono text-slate-400">{scorePercent}%</span>
                   {zone.risk_level && (
                     <RiskBadge level={zone.risk_level} className="text-[10px] px-1.5 py-0.5" />
                   )}
@@ -68,7 +69,7 @@ export const ZoneComparison: React.FC<ZoneComparisonProps> = ({ zones, onSelectZ
               <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
                 <div 
                   className={`h-full rounded-full transition-all duration-500 ease-out ${getBarColor(zone.risk_level)}`} 
-                  style={{ width: `${score}%` }}
+                  style={{ width: `${scorePercent}%` }}
                 />
               </div>
             </div>
