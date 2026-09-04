@@ -15,10 +15,14 @@ async function start(): Promise<void> {
     );
   }
 
-  app.listen(config.port, () => {
-    console.log(`[server] Talweg API running on http://localhost:${config.port}`);
-    console.log(`[server] Environment: ${config.nodeEnv}`);
-    console.log(`[server] Risk engine mode: ${config.riskEngineMode}`);
+  const PORT = parseInt(process.env.PORT || String(config.port), 10);
+  const HOST = '0.0.0.0'; // REQUIRED — not 'localhost' or '127.0.0.1'
+
+  app.listen(PORT, HOST, () => {
+    console.log(`Server listening on ${HOST}:${PORT}`);
+    console.log(`NODE_ENV: ${process.env.NODE_ENV || config.nodeEnv}`);
+    console.log(`DATABASE_URL: ${process.env.DATABASE_URL ? 'configured' : 'MISSING'}`);
+    console.log(`Risk engine mode: ${config.riskEngineMode}`);
   });
 }
 

@@ -53,12 +53,18 @@ async function handleResponse<T>(response: Response): Promise<T> {
   return body as T;
 }
 
+// In development, use the Vite proxy (relative path works)
+// In production on Render/Railway, VITE_API_URL is injected
+export const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
 export async function apiGet<T>(path: string): Promise<T> {
   let response: Response;
+  const url = `${API_BASE_URL}${path}`;
   try {
-    response = await fetch(path, {
+    response = await fetch(url, {
       headers: {
         Accept: 'application/json',
+        ...(import.meta.env.VITE_API_KEY ? { 'X-API-Key': import.meta.env.VITE_API_KEY } : {}),
       },
     });
   } catch (err) {
@@ -75,12 +81,14 @@ export async function apiGet<T>(path: string): Promise<T> {
 
 export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   let response: Response;
+  const url = `${API_BASE_URL}${path}`;
   try {
-    response = await fetch(path, {
+    response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
+        ...(import.meta.env.VITE_API_KEY ? { 'X-API-Key': import.meta.env.VITE_API_KEY } : {}),
       },
       body: JSON.stringify(body),
     });

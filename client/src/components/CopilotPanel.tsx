@@ -14,6 +14,7 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { API_BASE_URL } from '../lib/apiClient';
 
 type Engine = 'llm' | 'deterministic';
 
@@ -69,9 +70,12 @@ export const CopilotPanel: React.FC<CopilotPanelProps> = ({ zoneId }) => {
       setIsLoading(true);
 
       try {
-        const res = await fetch('/api/copilot', {
+        const res = await fetch(`${API_BASE_URL}/api/copilot`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(import.meta.env.VITE_API_KEY ? { 'X-API-Key': import.meta.env.VITE_API_KEY } : {}),
+          },
           cache: 'no-store', // never serve a cached response
           body: JSON.stringify({ question, zoneId }), // ← the CURRENT question, always
         });
