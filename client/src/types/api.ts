@@ -134,6 +134,28 @@ export interface HealthResponse {
   postgis?: string;
 }
 
+export interface BacktestEventResult {
+  id: string;
+  date: string;
+  zoneName: string;
+  category: string;
+  fatalities: number;
+  description: string;
+  predicted_risk_score: number;
+  predicted_risk_level: RiskLevel;
+  flagged: boolean;
+}
+
+export interface ModelValidationResponse {
+  total_events: number;
+  flagged_high_or_severe: number;
+  flagged_pct: number;
+  by_level: Record<RiskLevel, number>;
+  methodology: string;
+  caveat: string;
+  results: BacktestEventResult[];
+}
+
 export interface ApiErrorResponse {
   error: {
     message: string;

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { apiGet, apiPost, simulateRisk, ApiClientError, fetchRegions } from './apiClient';
+import { apiGet, apiPost, simulateRisk, ApiClientError, fetchRegions, fetchModelValidation } from './apiClient';
 
 describe('API Client (apiClient.ts)', () => {
   beforeEach(() => {
@@ -21,6 +21,31 @@ describe('API Client (apiClient.ts)', () => {
 
     const result = await fetchRegions();
     expect(result).toEqual(mockData);
+  });
+
+  it('fetchModelValidation calls GET /api/model-validation and returns the backtest summary', async () => {
+    const mockSummary = {
+      total_events: 15,
+      flagged_high_or_severe: 5,
+      flagged_pct: 33.3,
+      by_level: { LOW: 0, MODERATE: 10, HIGH: 5, SEVERE: 0 },
+      methodology: 'test methodology',
+      caveat: 'test caveat',
+      results: [],
+    };
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      headers: new Headers({ 'content-type': 'application/json' }),
+      json: async () => mockSummary,
+    } as unknown as Response);
+
+    const result = await fetchModelValidation();
+    expect(result).toEqual(mockSummary);
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.stringContaining('/api/model-validation'),
+      expect.anything()
+    );
   });
 
   it('unwraps error envelope on 400/404/500 API responses', async () => {

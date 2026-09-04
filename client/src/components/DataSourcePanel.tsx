@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import type { HealthResponse } from '../types/api';
+import React, { useState, useCallback } from 'react';
+import type { HealthResponse, ModelValidationResponse } from '../types/api';
+import { fetchModelValidation } from '../lib/apiClient';
 
 interface DataSourcePanelProps {
   health: HealthResponse | null;
@@ -15,18 +16,18 @@ interface DataSource {
 
 const DATA_SOURCES: DataSource[] = [
   {
-    name: 'NASA Global Landslide Catalog',
-    type: 'REAL',
-    description: 'Historical landslide events with coordinates and triggers',
+    name: 'Historical Incident Log',
+    type: 'SYNTHETIC',
+    description: 'Demo events styled on NASA GLC schema — not an actual NASA/GLC import',
     records: '15 events in Sikkim corridor',
-    status: 'loaded',
+    status: 'demo',
   },
   {
-    name: 'SRTM Digital Elevation Model',
-    type: 'DERIVED',
-    description: 'Slope gradient computed from 30m resolution DEM',
+    name: 'Zone Slope Values',
+    type: 'SYNTHETIC',
+    description: 'Representative slope per zone — not yet computed from a real SRTM DEM',
     records: '6 zone base slopes',
-    status: 'loaded',
+    status: 'demo',
   },
   {
     name: 'CHIRPS Rainfall Estimates',
@@ -45,7 +46,7 @@ const DATA_SOURCES: DataSource[] = [
   {
     name: 'ML Surrogate Model',
     type: 'DERIVED',
-    description: 'ExtraTreesRegressor trained on domain grid (R² > 0.998)',
+    description: 'ExtraTreesRegressor, R² > 0.998 on its own synthetic training grid — see backtest below for a ground-truth-adjacent check',
     records: 'Model loaded',
     status: 'loaded',
   },
@@ -72,11 +73,29 @@ const statusIndicator: Record<string, { color: string; label: string }> = {
 
 export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ health }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [validation, setValidation] = useState<ModelValidationResponse | null>(null);
+  const [validationLoading, setValidationLoading] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const handleToggle = useCallback(() => {
+    setIsOpen((prev) => {
+      const next = !prev;
+      if (next && !validation && !validationLoading) {
+        setValidationLoading(true);
+        setValidationError(null);
+        fetchModelValidation()
+          .then((data) => setValidation(data))
+          .catch((err) => setValidationError(err instanceof Error ? err.message : 'Failed to load'))
+          .finally(() => setValidationLoading(false));
+      }
+      return next;
+    });
+  }, [validation, validationLoading]);
 
   return (
     <div className="relative">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-cyan-800/50 text-cyan-300 text-xs font-medium shadow-sm hover:bg-slate-800 hover:border-cyan-700 transition cursor-pointer"
       >
         <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
@@ -125,6 +144,36 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ health }) => {
                 </div>
               );
             })}
+          </div>
+
+          <div className="p-3 border-t border-slate-800 bg-slate-950/60">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+              🔬 Model Validation Backtest
+            </h3>
+
+            {validationLoading && (
+              <p className="text-[10px] text-slate-500">Running backtest against 15 historical events…</p>
+            )}
+
+            {validationError && (
+              <p className="text-[10px] text-rose-400">Could not load backtest: {validationError}</p>
+            )}
+
+            {validation && (
+              <div className="space-y-2">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-lg font-bold text-emerald-400">
+                    {validation.flagged_high_or_severe}/{validation.total_events}
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    historical events flagged HIGH+ ({validation.flagged_pct}%) under representative trigger
+                    conditions
+                  </span>
+                </div>
+                <p className="text-[9px] text-slate-500 leading-relaxed">{validation.methodology}</p>
+                <p className="text-[9px] text-amber-400/90 leading-relaxed italic">⚠ {validation.caveat}</p>
+              </div>
+            )}
           </div>
 
           <div className="p-2.5 bg-slate-950/80 border-t border-slate-800">

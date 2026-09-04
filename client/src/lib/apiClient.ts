@@ -11,6 +11,7 @@ import {
   CopilotAskRequest,
   CopilotResponse,
   ApiErrorResponse,
+  ModelValidationResponse,
 } from '../types/api';
 
 export class ApiClientError extends Error {
@@ -128,6 +129,10 @@ export function fetchEnvironment(zoneId: string): Promise<EnvironmentObservation
 
 export function fetchHealth(): Promise<HealthResponse> {
   return apiGet<HealthResponse>('/api/health');
+}
+
+export function fetchModelValidation(): Promise<ModelValidationResponse> {
+  return apiGet<ModelValidationResponse>('/api/model-validation');
 }
 
 export function fetchAlerts(params?: {
