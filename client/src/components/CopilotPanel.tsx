@@ -55,7 +55,7 @@ export const CopilotPanel: React.FC<CopilotPanelProps> = ({ zoneId }) => {
       >
         <span className="flex items-center gap-1.5">
           <span className="text-cyan-400">✦</span>
-          <span>Ask SlopeGuard Copilot</span>
+          <span>Ask Talweg Copilot</span>
         </span>
         <span className="text-slate-400 text-xs font-mono">{isOpen ? '−' : '+'}</span>
       </button>

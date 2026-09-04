@@ -44,7 +44,7 @@ export interface CopilotContext {
 export const FACTOR_LABELS = ALERT_FACTOR_LABELS;
 
 export const SYSTEM_PROMPT =
-  'You are SlopeGuard Copilot, a landslide risk assistant. Answer ONLY from the JSON context provided. Never invent data, dates, or measurements. Keep answers under 120 words. If the context lacks information, say so. Always note that current data is synthetic demo data.';
+  'You are Talweg Copilot, a landslide risk assistant. Answer ONLY from the JSON context provided. Never invent data, dates, or measurements. Keep answers under 120 words. If the context lacks information, say so. Always note that current data is synthetic demo data.';
 
 /**
  * Builds grounded context for Copilot from database queries and deterministic risk engine.

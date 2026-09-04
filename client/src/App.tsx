@@ -3,6 +3,7 @@ import { Header } from './components/Header';
 import { MapView } from './components/MapView';
 import { ZonePanel } from './components/ZonePanel';
 import { AlertBanner } from './components/AlertBanner';
+import { ShortcutOverlay } from './components/ShortcutOverlay';
 import { MapErrorBoundary } from './components/MapErrorBoundary';
 import { useApiResource } from './hooks/useApiResource';
 import { useHealth } from './hooks/useHealth';
@@ -90,10 +91,51 @@ export const App: React.FC = () => {
     setSelectedZoneId(null);
   }, []);
 
+  const [showShortcuts, setShowShortcuts] = useState(false);
+
+  // Global Keyboard Shortcuts (Esc, 1-6, R, ?)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+        return;
+      }
+
+      if (e.key === 'Escape') {
+        if (showShortcuts) {
+          setShowShortcuts(false);
+        } else if (selectedZoneId) {
+          setSelectedZoneId(null);
+        }
+      } else if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        setShowShortcuts((prev) => !prev);
+      } else if ((e.key === 'r' || e.key === 'R') && scenario.isModified) {
+        scenario.reset();
+      } else if (/^[1-6]$/.test(e.key)) {
+        const index = parseInt(e.key, 10) - 1;
+        const targetZone = zonesQ.data?.[index];
+        if (targetZone) {
+          setSelectedZoneId(targetZone.id);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showShortcuts, selectedZoneId, scenario, zonesQ.data]);
+
   return (
     <div className="flex flex-col h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden select-none">
       {/* Top Navigation / System Status Header */}
-      <Header health={health} healthLoading={healthLoading} healthError={healthError} />
+      <Header
+        health={health}
+        healthLoading={healthLoading}
+        healthError={healthError}
+        onOpenShortcuts={() => setShowShortcuts(true)}
+      />
+
+      {/* Keyboard Shortcuts Help Modal */}
+      <ShortcutOverlay isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
 
       {/* Main Full-Bleed Interactive Workspace */}
       <main className="relative flex-1 w-full h-full overflow-hidden">

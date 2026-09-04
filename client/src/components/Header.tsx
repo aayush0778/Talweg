@@ -1,24 +1,26 @@
 import React from 'react';
 import { HealthResponse } from '../types/api';
+import { DataSourcePanel } from './DataSourcePanel';
 
 interface HeaderProps {
   health: HealthResponse | null;
   healthLoading: boolean;
   healthError: Error | null;
+  onOpenShortcuts?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ health, healthLoading, healthError }) => {
+export const Header: React.FC<HeaderProps> = ({ health, healthLoading, healthError, onOpenShortcuts }) => {
   const isOk = health?.status === 'ok' && health?.database === 'connected';
 
   return (
     <header className="h-16 px-6 bg-slate-950/90 backdrop-blur border-b border-slate-800/80 flex items-center justify-between z-20 shrink-0">
       <div className="flex items-center space-x-3">
         <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
-          <span className="text-emerald-400 font-black text-base tracking-tighter">SG</span>
+          <span className="text-emerald-400 font-black text-base tracking-tighter">TW</span>
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-base font-bold text-white tracking-tight">SlopeGuard AI</h1>
+            <h1 className="text-base font-bold text-white tracking-tight">Talweg</h1>
             <span className="text-[11px] font-semibold uppercase px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/60">
               SIH 2026
             </span>
@@ -30,11 +32,20 @@ export const Header: React.FC<HeaderProps> = ({ health, healthLoading, healthErr
       </div>
 
       <div className="flex items-center space-x-3">
-        {/* Synthetic Demo Data Badge — Machine/Human Transparency */}
-        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-cyan-800/50 text-cyan-300 text-xs font-medium shadow-sm">
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-          <span>DEMO DATA · synthetic_seed</span>
-        </div>
+        {/* Keyboard Shortcuts Trigger Button */}
+        {onOpenShortcuts && (
+          <button
+            onClick={onOpenShortcuts}
+            className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-700/80 text-slate-300 hover:text-white hover:bg-slate-800 text-xs font-medium transition cursor-pointer"
+            title="View Keyboard Shortcuts (?)"
+          >
+            <span>⌨️</span>
+            <span>Shortcuts</span>
+          </button>
+        )}
+
+        {/* Interactive Data Source & Pipeline Dashboard */}
+        <DataSourcePanel health={health} />
 
         {/* Live System Health Badge */}
         <div

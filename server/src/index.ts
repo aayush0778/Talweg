@@ -16,7 +16,7 @@ async function start(): Promise<void> {
   }
 
   app.listen(config.port, () => {
-    console.log(`[server] SlopeGuard API running on http://localhost:${config.port}`);
+    console.log(`[server] Talweg API running on http://localhost:${config.port}`);
     console.log(`[server] Environment: ${config.nodeEnv}`);
     console.log(`[server] Risk engine mode: ${config.riskEngineMode}`);
   });

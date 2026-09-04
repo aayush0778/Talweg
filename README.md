@@ -1,6 +1,6 @@
-# SlopeGuard AI
+# Talweg
 
-**AI-Based Landslide Early Warning & Risk Monitoring System for the North Eastern Region of India**
+**AI-Based Landslide Early Warning & Risk Intelligence System for the North Eastern Region of India**
 
 SIH26001 — Prototype decision-support system for landslide risk assessment in Sikkim.
 
@@ -84,6 +84,7 @@ Open http://localhost:5173 in your browser.
 - [x] **P0-B.2:** Server-authoritative alert generation & active alert banner
 - [x] **P0-B.3:** Grounded AI Copilot with zero-dependency deterministic fallback
 - [x] **Phase 5:** Honestly-scoped ML surrogate sidecar & live failover seam
+- [x] **Phase 6:** SIH competitive package (Response guidance, Zone comparison dashboard, PDF reports, 7-day risk sparkline, 5-day weather forecast, alert audit log, stakeholder escalation chain, data source dashboard, keyboard shortcuts, skeleton loaders)
 
 ## Documentation
 

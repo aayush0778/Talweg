@@ -45,7 +45,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="SlopeGuard AI — ML Surrogate Service",
+    title="Talweg — ML Surrogate Service",
     description="FastAPI microservice for landslide risk prediction surrogate model",
     version="0.1.0",
     lifespan=lifespan,

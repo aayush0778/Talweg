@@ -9,11 +9,16 @@ import {
 import { ScenarioValues } from '../lib/scenario';
 import { ScenarioSimulator } from './ScenarioSimulator';
 import { FactorBreakdown } from './FactorBreakdown';
+import { ResponseGuidance } from './ResponseGuidance';
+import { WeatherForecast } from './WeatherForecast';
+import { RiskTrend } from './RiskTrend';
+import { AlertHistory } from './AlertHistory';
 import { CopilotPanel } from './CopilotPanel';
 import { RiskBadge } from './RiskBadge';
 import { StatusMessage } from './StatusMessage';
 import { getRiskColor } from '../lib/riskColors';
 import { scoreToPercent, formatObsTimestamp, formatEventDate } from '../lib/format';
+import { openReportWindow } from '../lib/reportGenerator';
 
 interface ZoneDetailProps {
   zone: RiskZone;
@@ -93,6 +98,15 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
         <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wide">
           ID: {zone.id}
         </span>
+
+        <button
+          onClick={() => openReportWindow(zone, simulation ?? baselinePrediction ?? null, environment, events)}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-700/60 transition cursor-pointer"
+          title="Generate printable risk assessment report"
+        >
+          <span>📄</span>
+          <span>Export Report</span>
+        </button>
       </div>
 
       {/* Scrollable Content */}
@@ -190,6 +204,15 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
           )}
         </div>
 
+        {/* 7-Day Risk Trajectory Trend */}
+        <RiskTrend
+          currentScore={currentRiskScore}
+          riskLevel={currentRiskLevel}
+          rainfall24h={environment?.rainfall_24h}
+          rainfall3d={environment?.rainfall_3d}
+          rainfall7d={environment?.rainfall_7d}
+        />
+
         {/* P0-B.1: Risk Factor Breakdown */}
         {factors && factors.length > 0 && (
           <FactorBreakdown
@@ -198,6 +221,18 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
             isScenario={isScenarioActive}
           />
         )}
+
+        {/* Evacuation Response Guidance Panel */}
+        <ResponseGuidance 
+          riskLevel={currentRiskLevel} 
+          zoneName={zone.name} 
+        />
+
+        {/* 5-Day Weather Forecast Preview */}
+        <WeatherForecast
+          rainfall24h={environment?.rainfall_24h ?? null}
+          riskLevel={currentRiskLevel}
+        />
 
         {/* Live Rainfall Scenario Simulator */}
         <ScenarioSimulator
@@ -351,6 +386,9 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
             </div>
           )}
         </div>
+
+        {/* Alert History & Incident Audit Log */}
+        <AlertHistory zoneId={zone.id} />
 
         {/* P0-B.3: Constrained AI Copilot Section */}
         <CopilotPanel zoneId={zone.id} />

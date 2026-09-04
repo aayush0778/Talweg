@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   RiskZone,
   EnvironmentObservation,
@@ -10,6 +10,8 @@ import { ScenarioValues } from '../lib/scenario';
 import { ZoneList } from './ZoneList';
 import { ZoneDetail } from './ZoneDetail';
 import { StatusMessage } from './StatusMessage';
+import { ZoneComparison } from './ZoneComparison';
+import { Skeleton, SkeletonCard } from './Skeleton';
 
 interface ZonePanelProps {
   zones: RiskZone[] | null;
@@ -66,15 +68,19 @@ export const ZonePanel: React.FC<ZonePanelProps> = ({
   onRetryZones,
   onRetryEnv,
 }) => {
+  const [viewMode, setViewMode] = useState<'list' | 'dashboard'>('list');
+
   return (
     <aside className="absolute top-20 right-6 bottom-6 w-[400px] z-10 bg-slate-900/90 backdrop-blur-md border border-slate-800 shadow-2xl rounded-2xl flex flex-col overflow-hidden pointer-events-auto">
       {zonesLoading ? (
-        <div className="p-6 flex flex-col items-center justify-center h-full">
-          <StatusMessage
-            type="loading"
-            title="Connecting to GIS Repository"
-            message="Loading risk zones..."
-          />
+        <div className="p-4 space-y-3 overflow-y-auto">
+          <div className="flex justify-between items-center pb-2 border-b border-slate-800/80">
+            <Skeleton className="h-5 w-28" />
+            <Skeleton className="h-5 w-14 rounded-full" />
+          </div>
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
         </div>
       ) : zonesError ? (
         <div className="p-6 flex flex-col items-center justify-center h-full">
@@ -107,7 +113,28 @@ export const ZonePanel: React.FC<ZonePanelProps> = ({
           onRetryEnv={onRetryEnv}
         />
       ) : zones && zones.length > 0 ? (
-        <ZoneList zones={zones} selectedZoneId={null} onSelectZone={onSelectZone} />
+        <div className="flex flex-col h-full">
+          <div className="flex-none p-4 pb-2 flex justify-between items-center border-b border-slate-800/80">
+            <h2 className="text-lg font-semibold text-slate-100">Risk Zones</h2>
+            <div className="flex items-center gap-1 bg-slate-800/60 rounded-lg p-0.5">
+              <button 
+                onClick={() => setViewMode('list')}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${viewMode === 'list' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+              >List</button>
+              <button 
+                onClick={() => setViewMode('dashboard')}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${viewMode === 'dashboard' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+              >Dashboard</button>
+            </div>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            {viewMode === 'list' ? (
+              <ZoneList zones={zones} selectedZoneId={null} onSelectZone={onSelectZone} />
+            ) : (
+              <ZoneComparison zones={zones} onSelectZone={onSelectZone} />
+            )}
+          </div>
+        </div>
       ) : (
         <div className="p-6 flex flex-col items-center justify-center h-full">
           <StatusMessage type="empty" message="No risk zones available for this region." />

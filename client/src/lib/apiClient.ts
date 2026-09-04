@@ -62,7 +62,7 @@ export async function apiGet<T>(path: string): Promise<T> {
     });
   } catch (err) {
     throw new ApiClientError(
-      'Cannot reach the SlopeGuard API — is the server running?',
+      'Cannot reach the Talweg API — is the server running?',
       'NETWORK_ERROR',
       0,
       err
@@ -85,7 +85,7 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
     });
   } catch (err) {
     throw new ApiClientError(
-      'Cannot reach the SlopeGuard API — is the server running?',
+      'Cannot reach the Talweg API — is the server running?',
       'NETWORK_ERROR',
       0,
       err

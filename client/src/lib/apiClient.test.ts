@@ -60,7 +60,7 @@ describe('API Client (apiClient.ts)', () => {
       expect(err.name).toBe('ApiClientError');
       expect(err.code).toBe('NETWORK_ERROR');
       expect(err.status).toBe(0);
-      expect(err.message).toContain('Cannot reach the SlopeGuard API');
+      expect(err.message).toContain('Cannot reach the Talweg API');
     }
   });
 
