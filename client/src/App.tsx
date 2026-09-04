@@ -9,6 +9,7 @@ import { useApiResource } from './hooks/useApiResource';
 import { useHealth } from './hooks/useHealth';
 import { useScenario } from './hooks/useScenario';
 import { useAlerts } from './hooks/useAlerts';
+import { useSidebarResize } from './hooks/useSidebarResize';
 import { applySimulationToZones } from './lib/scenario';
 import {
   fetchRegions,
@@ -27,6 +28,9 @@ export const App: React.FC = () => {
 
   // P0-B.2: Active alerts polling and manual refresh
   const { alerts, refresh: refreshAlerts } = useAlerts(20000);
+
+  // Sidebar dynamic drag-to-resize on desktop
+  const { width, isDesktop, onHandlePointerDown, resetWidth, nudge } = useSidebarResize();
 
   // Selection state
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
@@ -155,6 +159,11 @@ export const App: React.FC = () => {
 
         {/* Right-Floating Decision-Support & Scenario Simulation Panel */}
         <ZonePanel
+          sidebarWidth={isDesktop ? width : undefined}
+          isDesktop={isDesktop}
+          onResizePointerDown={onHandlePointerDown}
+          onResizeDoubleClick={resetWidth}
+          onResizeNudge={nudge}
           zones={zonesQ.data}
           zonesLoading={zonesQ.loading}
           zonesError={zonesQ.error}

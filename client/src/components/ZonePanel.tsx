@@ -12,8 +12,14 @@ import { ZoneDetail } from './ZoneDetail';
 import { StatusMessage } from './StatusMessage';
 import { ZoneComparison } from './ZoneComparison';
 import { Skeleton, SkeletonCard } from './Skeleton';
+import { SidebarResizeHandle } from './SidebarResizeHandle';
 
 interface ZonePanelProps {
+  sidebarWidth?: number;
+  isDesktop?: boolean;
+  onResizePointerDown?: (e: React.PointerEvent<HTMLDivElement>) => void;
+  onResizeDoubleClick?: () => void;
+  onResizeNudge?: (dx: number) => void;
   zones: RiskZone[] | null;
   zonesLoading: boolean;
   zonesError: Error | null;
@@ -44,6 +50,11 @@ interface ZonePanelProps {
 }
 
 export const ZonePanel: React.FC<ZonePanelProps> = ({
+  sidebarWidth,
+  isDesktop,
+  onResizePointerDown,
+  onResizeDoubleClick,
+  onResizeNudge,
   zones,
   zonesLoading,
   zonesError,
@@ -71,7 +82,19 @@ export const ZonePanel: React.FC<ZonePanelProps> = ({
   const [viewMode, setViewMode] = useState<'list' | 'dashboard'>('list');
 
   return (
-    <aside className="absolute top-20 right-6 bottom-6 w-[400px] z-10 bg-slate-900/90 backdrop-blur-md border border-slate-800 shadow-2xl rounded-2xl flex flex-col overflow-hidden pointer-events-auto">
+    <aside
+      style={isDesktop && sidebarWidth ? { width: `${sidebarWidth}px` } : undefined}
+      className="absolute top-20 right-6 bottom-6 w-[400px] z-10 bg-slate-900/90 backdrop-blur-md border border-slate-800 shadow-2xl rounded-2xl flex flex-col overflow-hidden pointer-events-auto"
+    >
+      {isDesktop && onResizePointerDown && onResizeDoubleClick && onResizeNudge && (
+        <div className="absolute left-0 top-0 bottom-0 z-30 flex items-stretch">
+          <SidebarResizeHandle
+            onPointerDown={onResizePointerDown}
+            onDoubleClick={onResizeDoubleClick}
+            onNudge={onResizeNudge}
+          />
+        </div>
+      )}
       {zonesLoading ? (
         <div className="p-4 space-y-3 overflow-y-auto">
           <div className="flex justify-between items-center pb-2 border-b border-slate-800/80">

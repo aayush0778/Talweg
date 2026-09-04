@@ -50,3 +50,31 @@
 .maplibregl-ctrl-icon {
   filter: invert(1) opacity(0.8);
 }
+
+/* ─── Sidebar resize handle ─── */
+.sidebar-resize-handle {
+  width: 6px;
+  flex: 0 0 6px;
+  cursor: col-resize;
+  background: transparent;
+  transition: background-color 150ms ease;
+  touch-action: none; /* prevents touch scrolling from hijacking the drag */
+}
+.sidebar-resize-handle:hover,
+.sidebar-resize-handle:focus-visible,
+.sidebar-resize-handle:active {
+  background: rgba(59, 130, 246, 0.45); /* match your accent color */
+}
+
+/* While dragging: global resize cursor + no text selection.
+   CRITICAL: disables MapLibre canvas pointer events so the map
+   doesn't pan/zoom while the user is resizing the panel. */
+.is-resizing-sidebar,
+.is-resizing-sidebar * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+.is-resizing-sidebar .maplibregl-canvas-container {
+  pointer-events: none !important;
+}
+
