@@ -1,1 +1,1 @@
-"""SlopeGuard AI ML Service — Training Package"""
+"""Talweg ML Service — Training Package"""

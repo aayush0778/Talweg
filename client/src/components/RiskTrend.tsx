@@ -108,6 +108,9 @@ export const RiskTrend: React.FC<RiskTrendProps> = ({
           Baseline: {scoreToPercent(firstScore)}% → Now: {scoreToPercent(lastScore)}%
         </span>
       </div>
+      <p className="text-[10px] text-slate-500 italic -mt-1">
+        Simulated · projected from current telemetry, no historical rainfall time-series integrated yet
+      </p>
 
       <div className="relative w-full overflow-hidden pt-1">
         <svg

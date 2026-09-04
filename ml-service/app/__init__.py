@@ -1,1 +1,1 @@
-"""SlopeGuard AI ML Service — App Package"""
+"""Talweg ML Service — App Package"""

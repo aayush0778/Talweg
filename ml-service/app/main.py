@@ -1,4 +1,4 @@
-"""FastAPI Inference Service for SlopeGuard AI ML Surrogate
+"""FastAPI Inference Service for Talweg ML Surrogate
 
 Hosts the Scikit-Learn RandomForestRegressor surrogate model.
 Serves internal risk calculation requests from Node.js with strict loopback-only binding.

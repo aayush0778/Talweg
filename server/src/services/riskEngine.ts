@@ -1,5 +1,5 @@
 /**
- * Deterministic Risk Engine for SlopeGuard AI
+ * Deterministic Risk Engine for Talweg
  *
  * WHY THIS EXISTS:
  * This is the demo safety net. It calculates landslide risk using a weighted

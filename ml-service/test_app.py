@@ -1,4 +1,4 @@
-"""Tests for SlopeGuard AI ML Surrogate Service"""
+"""Tests for Talweg ML Surrogate Service"""
 
 import os
 import sys

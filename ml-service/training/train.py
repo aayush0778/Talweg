@@ -1,4 +1,4 @@
-"""Surrogate Model Training Script for SlopeGuard AI
+"""Surrogate Model Training Script for Talweg
 
 Trains a Scikit-Learn tree-ensemble surrogate model on systematically generated
 multi-factor feature combinations spanning the operational boundaries.
