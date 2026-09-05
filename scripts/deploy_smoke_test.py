@@ -101,6 +101,16 @@ def validate_zone_runout(body: str):
         return False, f"EVENT flow_progress must be 1, got {timeline[-1].get('flow_progress')}"
     return True, f"5 steps, T-72h: 0% -> EVENT: 100% ({data.get('zone_id')})"
 
+def validate_weather_forecast(body: str):
+    data = json.loads(body)
+    days = data.get('forecast_days', [])
+    prov = data.get('provenance', {})
+    if len(days) != 5:
+        return False, f"Expected 5 forecast days, got {len(days)}"
+    if prov.get('type') not in ('REAL', 'SYNTHETIC'):
+        return False, f"Unexpected provenance type {prov.get('type')}"
+    return True, f"5 days, Type: {prov.get('type')} ({prov.get('source', '')[:25]}...)"
+
 def main():
     parser = argparse.ArgumentParser(description='TALWEG Deployment Smoke Test')
     parser.add_argument('--server', default='http://localhost:3001', help='API server base URL')
@@ -127,6 +137,7 @@ def main():
         ('Verified Real Event Replay', f'{server}/api/historical-replays/replay-real-glc-2023-10-04/replay', 200, validate_real_replay),
         ('Truthful Validation Summary', f'{server}/api/model-validation/summary', 200, validate_summary),
         ('Zone Predictive Runout', f'{server}/api/risk-zones/gangtok/hazard-progression', 200, validate_zone_runout),
+        ('Zone Weather Forecast', f'{server}/api/forecast/gangtok', 200, validate_weather_forecast),
         ('3D Terrain Raster DEM Tile', dem_tile, 200, None),
     ]
 

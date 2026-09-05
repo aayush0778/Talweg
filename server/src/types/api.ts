@@ -243,3 +243,23 @@ export interface HazardProgressionResponse {
   timeline: HazardTimelineStep[];
   disclaimer: string;
 }
+
+// ----- Weather Forecast (Live IMD / NCMRWF with Fallback) -----
+
+export interface WeatherForecastDay {
+  date: string; // YYYY-MM-DD
+  day: string; // 'Mon', 'Tue', etc.
+  rainfall_mm: number;
+  probability_pct?: number;
+  icon: string;
+  intensity: 'none' | 'light' | 'moderate' | 'heavy' | 'very_heavy' | 'extreme';
+  warning: boolean;
+}
+
+export interface ZoneForecastResponse {
+  zone_id: string;
+  zone_name: string;
+  forecast_days: WeatherForecastDay[];
+  provenance: ProvenanceInfo;
+  fetched_at: string;
+}

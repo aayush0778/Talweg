@@ -308,6 +308,7 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
 
         {/* 5-Day Weather Forecast Preview */}
         <WeatherForecast
+          zoneId={zone.id}
           rainfall24h={environment?.rainfall_24h ?? null}
           riskLevel={currentRiskLevel}
         />

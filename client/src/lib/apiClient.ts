@@ -16,6 +16,7 @@ import {
   HistoricalReplayResponse,
   ValidationSummaryResponse,
   HazardProgressionResponse,
+  ZoneForecastResponse,
 } from '../types/api';
 
 export class ApiClientError extends Error {
@@ -193,5 +194,10 @@ export function fetchHazardProgression(id: string): Promise<HazardProgressionRes
 
 export function fetchZonePredictiveRunout(zoneId: string): Promise<HazardProgressionResponse> {
   return apiGet<HazardProgressionResponse>(`/api/risk-zones/${encodeURIComponent(zoneId)}/hazard-progression`);
+}
+
+export function fetchZoneForecast(zoneId: string, rainfall24h?: number | null): Promise<ZoneForecastResponse> {
+  const query = rainfall24h != null ? `?rainfall_24h=${encodeURIComponent(rainfall24h)}` : '';
+  return apiGet<ZoneForecastResponse>(`/api/forecast/${encodeURIComponent(zoneId)}${query}`);
 }
 
