@@ -745,7 +745,7 @@ function MapViewComponent(
       }
     }
 
-    // 4. Historical Event Target Point
+    // 4. Historical Event Target Point / Projected Deposition Fan Center
     if (targetSource) {
       if (showHazardHistoricalMarker) {
         targetSource.setData({
@@ -758,7 +758,10 @@ function MapViewComponent(
                 coordinates: geometry.historical_event_point,
               },
               properties: {
-                title: 'Recorded Historical Event (GLC #15243)',
+                title:
+                  hazardProgressionData.simulation_mode === 'historical_replay'
+                    ? (hazardProgressionData.event_name || 'Recorded Historical Event')
+                    : 'Projected Deposition Fan Center',
               },
             },
           ],

@@ -237,6 +237,8 @@ export interface HazardProgressionResponse {
   event_date: string;
   zone_id: string;
   zone_name: string;
+  simulation_mode?: 'historical_replay' | 'predictive_runout';
+  provenance_type?: 'REAL' | 'DERIVED' | 'SYNTHETIC' | 'SIMULATED';
   geometry: HazardCorridorGeometry;
   timeline: HazardTimelineStep[];
   disclaimer: string;

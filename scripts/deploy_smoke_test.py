@@ -86,6 +86,21 @@ def validate_summary(body: str):
         return True, f'Empirical counts (Real: {data.get("real_replay_count")}, Synth: {data.get("synthetic_replay_count")})'
     return False, 'Validation summary fabricated premature metrics'
 
+def validate_zone_runout(body: str):
+    data = json.loads(body)
+    if data.get('simulation_mode') != 'predictive_runout':
+        return False, f"simulation_mode was {data.get('simulation_mode')}"
+    if data.get('provenance_type') != 'SIMULATED':
+        return False, f"provenance_type was {data.get('provenance_type')}"
+    timeline = data.get('timeline', [])
+    if len(timeline) != 5:
+        return False, f"Expected 5 timeline steps, got {len(timeline)}"
+    if timeline[0].get('flow_progress') != 0:
+        return False, f"T-72h flow_progress must be 0, got {timeline[0].get('flow_progress')}"
+    if timeline[-1].get('flow_progress') != 1:
+        return False, f"EVENT flow_progress must be 1, got {timeline[-1].get('flow_progress')}"
+    return True, f"5 steps, T-72h: 0% -> EVENT: 100% ({data.get('zone_id')})"
+
 def main():
     parser = argparse.ArgumentParser(description='TALWEG Deployment Smoke Test')
     parser.add_argument('--server', default='http://localhost:3001', help='API server base URL')
@@ -111,6 +126,7 @@ def main():
         ('Historical Replays List', f'{server}/api/historical-replays', 200, validate_replays_list),
         ('Verified Real Event Replay', f'{server}/api/historical-replays/replay-real-glc-2023-10-04/replay', 200, validate_real_replay),
         ('Truthful Validation Summary', f'{server}/api/model-validation/summary', 200, validate_summary),
+        ('Zone Predictive Runout', f'{server}/api/risk-zones/gangtok/hazard-progression', 200, validate_zone_runout),
         ('3D Terrain Raster DEM Tile', dem_tile, 200, None),
     ]
 
@@ -124,7 +140,7 @@ def main():
 
     print('-' * 70)
     if all_passed:
-        print('  ALL 8 SMOKE TESTS PASSED! System is deployment-verified.')
+        print(f'  ALL {len(tests)} SMOKE TESTS PASSED! System is deployment-verified.')
         print('=' * 70)
         sys.exit(0)
     else:

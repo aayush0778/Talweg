@@ -53,6 +53,7 @@ interface ZoneDetailProps {
   terrain3D?: boolean;
   onToggleTerrain?: () => void;
   onLaunchHazardProgression?: (replayId: string) => void;
+  onLaunchZoneRunout?: (zoneId: string) => void;
 }
 
 export const ZoneDetail: React.FC<ZoneDetailProps> = ({
@@ -79,6 +80,7 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
   terrain3D,
   onToggleTerrain,
   onLaunchHazardProgression,
+  onLaunchZoneRunout,
 }) => {
   const [replayEventId, setReplayEventId] = useState<string | null>(null);
 
@@ -184,6 +186,18 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
               )}
             </div>
           </div>
+
+          {/* Zone-Specific Predictive Runout Trigger */}
+          {onLaunchZoneRunout && (
+            <button
+              onClick={() => onLaunchZoneRunout(zone.id)}
+              className="w-full mt-2 py-2 px-3 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold shadow-md shadow-blue-900/40 flex items-center justify-center gap-2 transition cursor-pointer border border-blue-400/30"
+              title="Simulate Downslope Debris-Flow Runout based on Current Zone Telemetry"
+            >
+              <span>🌊</span>
+              <span>Simulate Predictive Runout (Current Conditions)</span>
+            </button>
+          )}
         </div>
 
         {/* Risk Score Card (with OBSERVED vs SCENARIO State and ML Engine Badge) */}

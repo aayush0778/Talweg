@@ -52,6 +52,7 @@ interface ZonePanelProps {
   terrain3D?: boolean;
   onToggleTerrain?: () => void;
   onLaunchHazardProgression?: (replayId: string) => void;
+  onLaunchZoneRunout?: (zoneId: string) => void;
 }
 
 export const ZonePanel: React.FC<ZonePanelProps> = ({
@@ -88,6 +89,7 @@ export const ZonePanel: React.FC<ZonePanelProps> = ({
   terrain3D,
   onToggleTerrain,
   onLaunchHazardProgression,
+  onLaunchZoneRunout,
 }) => {
   const [viewMode, setViewMode] = useState<'list' | 'dashboard'>('list');
 
@@ -149,6 +151,7 @@ export const ZonePanel: React.FC<ZonePanelProps> = ({
           terrain3D={terrain3D}
           onToggleTerrain={onToggleTerrain}
           onLaunchHazardProgression={onLaunchHazardProgression}
+          onLaunchZoneRunout={onLaunchZoneRunout}
         />
       ) : zones && zones.length > 0 ? (
         <div className="flex flex-col h-full">

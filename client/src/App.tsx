@@ -20,6 +20,7 @@ import {
   fetchEnvironment,
   predictRisk,
   fetchHazardProgression,
+  fetchZonePredictiveRunout,
 } from './lib/apiClient';
 
 export const App: React.FC = () => {
@@ -115,10 +116,22 @@ export const App: React.FC = () => {
       const data = await fetchHazardProgression(replayId);
       setHazardProgressionData(data);
       setHazardStepIndex(0);
-      setIsHazardPlaying(true);
+      setIsHazardPlaying(false);
       setTerrain3D(true);
     } catch (err) {
       console.error('Failed to load hazard progression simulation:', err);
+    }
+  }, []);
+
+  const handleLaunchZoneRunout = useCallback(async (zoneId: string) => {
+    try {
+      const data = await fetchZonePredictiveRunout(zoneId);
+      setHazardProgressionData(data);
+      setHazardStepIndex(0);
+      setIsHazardPlaying(false);
+      setTerrain3D(true);
+    } catch (err) {
+      console.error('Failed to load zone predictive runout:', err);
     }
   }, []);
 
@@ -245,6 +258,7 @@ export const App: React.FC = () => {
           terrain3D={terrain3D}
           onToggleTerrain={() => mapViewRef.current?.toggle3D()}
           onLaunchHazardProgression={handleLaunchHazardProgression}
+          onLaunchZoneRunout={handleLaunchZoneRunout}
         />
 
         {/* Floating Terrain-Aware Hazard Progression Replay Player */}

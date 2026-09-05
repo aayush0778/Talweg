@@ -54,16 +54,32 @@ export const HazardProgressionPlayer: React.FC<HazardProgressionPlayerProps> = (
 
   return (
     <div className="absolute bottom-6 left-6 right-6 md:left-12 md:right-[440px] z-20 bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto text-slate-100 flex flex-col transition-all duration-300">
-      {/* Top Bar: Title, Scientific Disclaimer Badge, and Close Button */}
+      {/* Top Bar: Title, Provenance Mode Badge, Scientific Disclaimer, and Close Button */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-slate-950/80 border-b border-slate-800">
         <div className="flex items-center gap-2.5">
           <span className="text-base">🌊</span>
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
-              <span>TALWEG Predictive Runout Replay</span>
-              <span className="text-[10px] text-slate-400 font-normal">({data.event_date})</span>
-            </h3>
-            <p className="text-[11px] text-slate-400 truncate max-w-md">{data.event_name}</p>
+            <div className="flex items-center gap-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+                {data.simulation_mode === 'historical_replay'
+                  ? 'Historical Ground-Truth Replay'
+                  : 'TALWEG Predictive Runout Simulation'}
+              </h3>
+              <span
+                className={`text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider ${
+                  data.simulation_mode === 'historical_replay'
+                    ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+                    : 'bg-blue-500/15 border-blue-500/40 text-blue-300'
+                }`}
+              >
+                {data.simulation_mode === 'historical_replay'
+                  ? 'HISTORICAL GROUND-TRUTH REPLAY'
+                  : 'PREDICTIVE RUNOUT (CURRENT TELEMETRY)'}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 truncate max-w-md">
+              {data.event_name} • <span className="text-slate-300 font-medium">{data.zone_name}</span>
+            </p>
           </div>
         </div>
 
@@ -293,12 +309,18 @@ export const HazardProgressionPlayer: React.FC<HazardProgressionPlayerProps> = (
               onClick={onToggleHistoricalMarker}
               className={`px-2.5 py-1 rounded-md text-[11px] font-medium border transition cursor-pointer flex items-center gap-1.5 ${
                 showHistoricalMarker
-                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300'
+                  ? data.simulation_mode === 'historical_replay'
+                    ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300'
+                    : 'bg-blue-500/20 border-blue-500/50 text-blue-300'
                   : 'bg-slate-800/60 border-slate-700 text-slate-400'
               }`}
             >
               <span>{showHistoricalMarker ? '✓' : '○'}</span>
-              <span>Actual GLC Event</span>
+              <span>
+                {data.simulation_mode === 'historical_replay'
+                  ? 'Actual Event Marker'
+                  : 'Projected Deposition Fan'}
+              </span>
             </button>
 
             <button

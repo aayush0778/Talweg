@@ -191,3 +191,7 @@ export function fetchHazardProgression(id: string): Promise<HazardProgressionRes
   return apiGet<HazardProgressionResponse>(`/api/historical-replays/${encodeURIComponent(id)}/hazard-progression`);
 }
 
+export function fetchZonePredictiveRunout(zoneId: string): Promise<HazardProgressionResponse> {
+  return apiGet<HazardProgressionResponse>(`/api/risk-zones/${encodeURIComponent(zoneId)}/hazard-progression`);
+}
+
