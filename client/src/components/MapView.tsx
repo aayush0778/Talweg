@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import maplibregl, { GeoJSONSource, MapLayerMouseEvent, MapMouseEvent } from 'maplibre-gl';
 import { Region, RiskZone, LandslideEvent } from '../types/api';
 import { MAP_STYLE, PANEL_WIDTH, DEFAULT_CENTER, DEFAULT_ZOOM } from '../config/map';
@@ -12,6 +12,9 @@ interface MapViewProps {
   events: LandslideEvent[] | null;
   selectedZoneId: string | null;
   onSelectZone: (zoneId: string) => void;
+  mapViewMode?: 'top' | 'focus';
+  onMapViewModeChange?: (mode: 'top' | 'focus') => void;
+  sidebarWidth?: number;
 }
 
 export const MapView: React.FC<MapViewProps> = ({
@@ -20,6 +23,9 @@ export const MapView: React.FC<MapViewProps> = ({
   events,
   selectedZoneId,
   onSelectZone,
+  mapViewMode,
+  onMapViewModeChange,
+  sidebarWidth,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -27,6 +33,10 @@ export const MapView: React.FC<MapViewProps> = ({
   const didFitRef = useRef<boolean>(false);
   const [mapReady, setMapReady] = useState<boolean>(false);
   const [terrain3D, setTerrain3D] = useState<boolean>(false);
+  const [internalViewMode, setInternalViewMode] = useState<'top' | 'focus'>('top');
+
+  const activeViewMode = mapViewMode ?? internalViewMode;
+  const effectiveSidebarWidth = sidebarWidth ?? PANEL_WIDTH;
 
   const DEFAULT_TERRAIN_DEM_URL = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
 
@@ -59,14 +69,89 @@ export const MapView: React.FC<MapViewProps> = ({
     map.easeTo({ pitch: 0, duration: 700 });
   }
 
+  const handleTopView = useCallback(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (terrain3D) {
+      disable3DTerrain(map);
+      setTerrain3D(false);
+    }
+    if (onMapViewModeChange) {
+      onMapViewModeChange('top');
+    } else {
+      setInternalViewMode('top');
+    }
+    const bounds = regions?.[0]?.bounds || [88.0, 27.08, 88.92, 28.13];
+    map.fitBounds(
+      [
+        [bounds[0], bounds[1]],
+        [bounds[2], bounds[3]],
+      ],
+      {
+        padding: { top: 50, bottom: 50, left: 50, right: effectiveSidebarWidth + 50 },
+        pitch: 0,
+        bearing: 0,
+        duration: 1000,
+      }
+    );
+  }, [regions, terrain3D, effectiveSidebarWidth, onMapViewModeChange]);
+
+  const handleFocusZone = useCallback(() => {
+    const map = mapRef.current;
+    if (!map || !selectedZoneId || !zones) return;
+    if (onMapViewModeChange) {
+      onMapViewModeChange('focus');
+    } else {
+      setInternalViewMode('focus');
+    }
+    const target = zones.find((z) => z.id === selectedZoneId);
+    if (target?.centroid) {
+      if (terrain3D) {
+        map.flyTo({
+          center: [target.centroid.longitude, target.centroid.latitude],
+          zoom: 12.2,
+          pitch: 55,
+          bearing: 15,
+          duration: 1200,
+          padding: { top: 40, bottom: 40, left: 40, right: effectiveSidebarWidth + 40 },
+        });
+      } else {
+        map.flyTo({
+          center: [target.centroid.longitude, target.centroid.latitude],
+          zoom: 11.5,
+          pitch: 0,
+          bearing: 0,
+          duration: 1200,
+          padding: { top: 40, bottom: 40, left: 40, right: effectiveSidebarWidth + 40 },
+        });
+      }
+    }
+  }, [selectedZoneId, zones, terrain3D, effectiveSidebarWidth, onMapViewModeChange]);
+
   const handleToggleTerrain = () => {
-    if (!mapRef.current) return;
+    const map = mapRef.current;
+    if (!map) return;
     if (!terrain3D) {
-      enable3DTerrain(mapRef.current);
+      enable3DTerrain(map);
       setTerrain3D(true);
     } else {
-      disable3DTerrain(mapRef.current);
+      disable3DTerrain(map);
       setTerrain3D(false);
+      if (activeViewMode === 'top') {
+        const bounds = regions?.[0]?.bounds || [88.0, 27.08, 88.92, 28.13];
+        map.fitBounds(
+          [
+            [bounds[0], bounds[1]],
+            [bounds[2], bounds[3]],
+          ],
+          {
+            padding: { top: 50, bottom: 50, left: 50, right: effectiveSidebarWidth + 50 },
+            pitch: 0,
+            bearing: 0,
+            duration: 800,
+          }
+        );
+      }
     }
   };
 
@@ -248,7 +333,7 @@ export const MapView: React.FC<MapViewProps> = ({
     const map = mapRef.current;
     if (!map || !mapReady || !regions || regions.length === 0 || didFitRef.current) return;
 
-    const bounds = regions[0]?.bounds;
+    const bounds = regions[0]?.bounds || [88.0, 27.08, 88.92, 28.13];
     if (bounds && bounds.length === 4) {
       map.fitBounds(
         [
@@ -256,13 +341,15 @@ export const MapView: React.FC<MapViewProps> = ({
           [bounds[2], bounds[3]],
         ],
         {
-          padding: { top: 40, bottom: 40, left: 40, right: PANEL_WIDTH + 40 },
+          padding: { top: 50, bottom: 50, left: 50, right: effectiveSidebarWidth + 50 },
+          pitch: 0,
+          bearing: 0,
           duration: 1200,
         }
       );
       didFitRef.current = true;
     }
-  }, [mapReady, regions]);
+  }, [mapReady, regions, effectiveSidebarWidth]);
 
   // ----- Effect 5: Selection Highlight Filter -----
   useEffect(() => {
@@ -277,10 +364,28 @@ export const MapView: React.FC<MapViewProps> = ({
     }
   }, [mapReady, selectedZoneId]);
 
-  // ----- Effect 6: Fly to Selected Zone Centroid -----
+  // ----- Effect 6: Fly to Selected Zone Centroid or Preserve Top View -----
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapReady || !selectedZoneId || !zones) return;
+
+    if (activeViewMode === 'top' && !terrain3D) {
+      // In Top View, maintain regional nadir view framing with 0° pitch/bearing
+      const bounds = regions?.[0]?.bounds || [88.0, 27.08, 88.92, 28.13];
+      map.fitBounds(
+        [
+          [bounds[0], bounds[1]],
+          [bounds[2], bounds[3]],
+        ],
+        {
+          padding: { top: 50, bottom: 50, left: 50, right: effectiveSidebarWidth + 50 },
+          pitch: 0,
+          bearing: 0,
+          duration: 800,
+        }
+      );
+      return;
+    }
 
     const target = zones.find((z) => z.id === selectedZoneId);
     if (target?.centroid) {
@@ -291,18 +396,20 @@ export const MapView: React.FC<MapViewProps> = ({
           pitch: 55,
           bearing: 15,
           duration: 1200,
-          padding: { top: 40, bottom: 40, left: 40, right: PANEL_WIDTH + 40 },
+          padding: { top: 40, bottom: 40, left: 40, right: effectiveSidebarWidth + 40 },
         });
       } else {
         map.flyTo({
           center: [target.centroid.longitude, target.centroid.latitude],
           zoom: 11.5,
+          pitch: 0,
+          bearing: 0,
           duration: 1200,
-          padding: { top: 40, bottom: 40, left: 40, right: PANEL_WIDTH + 40 },
+          padding: { top: 40, bottom: 40, left: 40, right: effectiveSidebarWidth + 40 },
         });
       }
     }
-  }, [mapReady, selectedZoneId, zones, terrain3D]);
+  }, [mapReady, selectedZoneId, zones, terrain3D, activeViewMode, regions, effectiveSidebarWidth]);
 
   // ----- Effect 7: Map Interactions & Event Popups -----
   useEffect(() => {
@@ -375,18 +482,52 @@ export const MapView: React.FC<MapViewProps> = ({
     <div className="relative w-full h-full">
       <div ref={containerRef} className="w-full h-full" />
       <MapLegend />
-      <button
-        onClick={handleToggleTerrain}
-        className={`absolute top-4 left-4 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-lg shadow-lg text-xs font-semibold tracking-wide transition-all cursor-pointer border ${
-          terrain3D
-            ? 'bg-emerald-600 text-white border-emerald-400 shadow-emerald-950/50'
-            : 'bg-slate-900/90 text-slate-200 border-slate-700/80 hover:bg-slate-800 hover:text-white'
-        }`}
-        title={terrain3D ? 'Switch to 2D Top-down View' : 'Explore in 3D Terrain View'}
-      >
-        <span>🏔️</span>
-        <span>{terrain3D ? '2D View' : '3D Terrain'}</span>
-      </button>
+
+      {/* Floating Map Perspective & Terrain Controller */}
+      <div className="absolute top-4 left-4 z-10 flex items-center bg-slate-900/90 backdrop-blur-md p-1 rounded-xl border border-slate-700/80 shadow-2xl space-x-1">
+        <button
+          onClick={handleTopView}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+            activeViewMode === 'top' && !terrain3D
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-950/50'
+              : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+          }`}
+          title="Top View (State Overview - Nadir 0°)"
+        >
+          <span>🗺️</span>
+          <span>Top View</span>
+        </button>
+
+        {selectedZoneId && (
+          <button
+            onClick={handleFocusZone}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+              activeViewMode === 'focus' && !terrain3D
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-950/50'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+            }`}
+            title="Focus on Selected Zone Centroid"
+          >
+            <span>🎯</span>
+            <span>Focus Zone</span>
+          </button>
+        )}
+
+        <div className="w-[1px] h-4 bg-slate-700 mx-1" />
+
+        <button
+          onClick={handleToggleTerrain}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+            terrain3D
+              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/50'
+              : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+          }`}
+          title={terrain3D ? 'Disable 3D Terrain (Return to 2D Top View)' : 'Explore in 3D Relief Terrain (55° Pitch)'}
+        >
+          <span>🏔️</span>
+          <span>{terrain3D ? '3D Active' : '3D Terrain'}</span>
+        </button>
+      </div>
     </div>
   );
 };

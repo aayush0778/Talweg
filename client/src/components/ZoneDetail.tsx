@@ -48,6 +48,8 @@ interface ZoneDetailProps {
   eventsLoading: boolean;
   onBack: () => void;
   onRetryEnv?: () => void;
+  mapViewMode?: 'top' | 'focus';
+  onMapViewModeChange?: (mode: 'top' | 'focus') => void;
 }
 
 export const ZoneDetail: React.FC<ZoneDetailProps> = ({
@@ -69,6 +71,8 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
   eventsLoading,
   onBack,
   onRetryEnv,
+  mapViewMode,
+  onMapViewModeChange,
 }) => {
   const [replayEventId, setReplayEventId] = useState<string | null>(null);
 
@@ -121,8 +125,41 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
             <RiskBadge level={currentRiskLevel} className="transition-all duration-500" />
           </div>
           {zone.description && (
-            <p className="text-xs text-slate-300 leading-relaxed">{zone.description}</p>
+            <p className="text-xs text-slate-300 leading-relaxed mb-2.5">{zone.description}</p>
           )}
+
+          {/* Map Perspective Selector */}
+          <div className="flex items-center justify-between py-1 px-2 rounded-lg bg-slate-950/60 border border-slate-800">
+            <span className="text-[11px] font-medium text-slate-400">Map Perspective:</span>
+            <div className="inline-flex rounded-md bg-slate-900 border border-slate-700/80 p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => onMapViewModeChange?.('top')}
+                className={`px-2 py-0.5 rounded text-[11px] font-semibold transition cursor-pointer flex items-center gap-1 ${
+                  mapViewMode === 'top'
+                    ? 'bg-blue-600 text-white shadow'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Top View (State Overview - 0° Nadir)"
+              >
+                <span>🗺️</span>
+                <span>Top View</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onMapViewModeChange?.('focus')}
+                className={`px-2 py-0.5 rounded text-[11px] font-semibold transition cursor-pointer flex items-center gap-1 ${
+                  mapViewMode === 'focus'
+                    ? 'bg-blue-600 text-white shadow'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Focus Zone (Centroid close-up)"
+              >
+                <span>🎯</span>
+                <span>Focus Zone</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Risk Score Card (with OBSERVED vs SCENARIO State and ML Engine Badge) */}

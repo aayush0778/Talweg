@@ -8,6 +8,8 @@ interface ShortcutOverlayProps {
 const shortcuts = [
   { key: '1 – 6', action: 'Select zone by position' },
   { key: 'Esc', action: 'Deselect zone / Close overlay' },
+  { key: 'T', action: 'Top View (Sikkim State Overview)' },
+  { key: 'F', action: 'Focus selected zone centroid' },
   { key: 'R', action: 'Reset scenario to baseline' },
   { key: '?', action: 'Toggle keyboard shortcuts help' },
 ];

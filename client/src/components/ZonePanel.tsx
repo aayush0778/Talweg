@@ -47,6 +47,8 @@ interface ZonePanelProps {
   onBackToList: () => void;
   onRetryZones: () => void;
   onRetryEnv: () => void;
+  mapViewMode?: 'top' | 'focus';
+  onMapViewModeChange?: (mode: 'top' | 'focus') => void;
 }
 
 export const ZonePanel: React.FC<ZonePanelProps> = ({
@@ -78,6 +80,8 @@ export const ZonePanel: React.FC<ZonePanelProps> = ({
   onBackToList,
   onRetryZones,
   onRetryEnv,
+  mapViewMode,
+  onMapViewModeChange,
 }) => {
   const [viewMode, setViewMode] = useState<'list' | 'dashboard'>('list');
 
@@ -134,6 +138,8 @@ export const ZonePanel: React.FC<ZonePanelProps> = ({
           eventsLoading={zoneEventsLoading}
           onBack={onBackToList}
           onRetryEnv={onRetryEnv}
+          mapViewMode={mapViewMode}
+          onMapViewModeChange={onMapViewModeChange}
         />
       ) : zones && zones.length > 0 ? (
         <div className="flex flex-col h-full">

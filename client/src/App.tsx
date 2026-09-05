@@ -32,8 +32,9 @@ export const App: React.FC = () => {
   // Sidebar dynamic drag-to-resize on desktop
   const { width, isDesktop, onHandlePointerDown, resetWidth, nudge } = useSidebarResize();
 
-  // Selection state
+  // Selection & View Mode state
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
+  const [mapViewMode, setMapViewMode] = useState<'top' | 'focus'>('top');
 
   const selectedZone = zonesQ.data?.find((z) => z.id === selectedZoneId) ?? null;
 
@@ -80,10 +81,10 @@ export const App: React.FC = () => {
       }
     : selectedZone
       ? {
-          risk_score: selectedZone.risk_score,
-          risk_level: selectedZone.risk_level,
-          timestamp: selectedZone.timestamp,
-        }
+        risk_score: selectedZone.risk_score,
+        risk_level: selectedZone.risk_level,
+        timestamp: selectedZone.timestamp,
+      }
       : null;
 
   // Stable selection callbacks
@@ -93,11 +94,12 @@ export const App: React.FC = () => {
 
   const handleDeselect = useCallback(() => {
     setSelectedZoneId(null);
+    setMapViewMode('top');
   }, []);
 
   const [showShortcuts, setShowShortcuts] = useState(false);
 
-  // Global Keyboard Shortcuts (Esc, 1-6, R, ?)
+  // Global Keyboard Shortcuts (Esc, 1-6, R, T, F, ?)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -110,9 +112,16 @@ export const App: React.FC = () => {
           setShowShortcuts(false);
         } else if (selectedZoneId) {
           setSelectedZoneId(null);
+          setMapViewMode('top');
         }
       } else if (e.key === '?' || (e.shiftKey && e.key === '/')) {
         setShowShortcuts((prev) => !prev);
+      } else if (e.key === 't' || e.key === 'T') {
+        setMapViewMode('top');
+      } else if (e.key === 'f' || e.key === 'F') {
+        if (selectedZoneId) {
+          setMapViewMode('focus');
+        }
       } else if ((e.key === 'r' || e.key === 'R') && scenario.isModified) {
         scenario.reset();
       } else if (/^[1-6]$/.test(e.key)) {
@@ -154,6 +163,9 @@ export const App: React.FC = () => {
             events={eventsQ.data}
             selectedZoneId={selectedZoneId}
             onSelectZone={handleSelectZone}
+            mapViewMode={mapViewMode}
+            onMapViewModeChange={setMapViewMode}
+            sidebarWidth={isDesktop ? width : undefined}
           />
         </MapErrorBoundary>
 
@@ -187,6 +199,8 @@ export const App: React.FC = () => {
           onBackToList={handleDeselect}
           onRetryZones={zonesQ.reload}
           onRetryEnv={envQ.reload}
+          mapViewMode={mapViewMode}
+          onMapViewModeChange={setMapViewMode}
         />
       </main>
     </div>
