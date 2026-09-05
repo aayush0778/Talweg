@@ -19,33 +19,39 @@ SIH26001 — Prototype decision-support system for landslide risk assessment in 
 
 ## 📸 Interface Showcase
 
-### 1. 3D Relief Terrain Exploration (Himalayan Micro-Corridors)
+### 1. 3D Terrain-Aware Hazard Visualization (Himalayan Micro-Corridors)
 ![TALWEG 3D Relief Terrain](docs/screenshots/01_3d_terrain_gangtok.jpg)
-*High-resolution 3D relief terrain (55° pitch) rendered on MapLibre GL with AWS Terrarium DEM tiles, capturing steep Himalayan slopes, snowcapped ridgelines, and zone risk telemetry for the Gangtok Corridor.*
+*High-resolution 3D relief terrain (55° pitch) rendered on MapLibre GL with AWS Terrarium DEM tiles, capturing steep Himalayan slopes, snowcapped ridgelines, and zone risk telemetry evaluated by the Extra Trees ML surrogate.*
 
 ---
 
-### 2. Predictive Runout & Hazard Progression Replay
+### 2. Terrain-Based Hazard Progression Simulation
 ![TALWEG Predictive Runout Simulation](docs/screenshots/02_predictive_runout_simulation.png)
-*Geospatially-grounded hazard progression simulation visualizing antecedent saturation, threshold crossing, terrain-following descent corridor, and projected debris deposition fan with full T-72h timeline controls and Talweg Copilot.*
+*Illustrative terrain-following hazard progression simulation modeling antecedent saturation, threshold crossing, descent trajectory, and projected debris fan with timeline controls and explicit non-forecast disclaimer.*
 
 ---
 
-### 3. Statewide Spatial Risk Intelligence (Sikkim Overview)
+### 3. Statewide Geospatial Risk Intelligence (Sikkim Overview)
 ![TALWEG Statewide Risk Intelligence](docs/screenshots/03_state_overview_monitoring.jpg)
-*Nadir top-view monitoring across all 6 administrative corridors of Sikkim with clustered historical landslide records and server-authoritative active alert dispatch.*
+*Nadir top-view decision-support monitoring across all 6 administrative corridors of Sikkim with clustered historical landslide records and server-authoritative active alert dispatch.*
 
 ---
 
-### 4. Interactive What-If Monsoon Scenario Simulator
+### 4. Interactive What-If Scenario Stress Testing
 ![TALWEG What-If Scenario Simulator](docs/screenshots/04_scenario_simulator_3d.png)
-*Parametric stress-testing of slopes with real-time sliders for 24h rainfall, 3-day cumulative rainfall, and soil saturation to model extreme precipitation triggers.*
+*Parametric stress-testing of slopes with real-time sliders for 24h precipitation, 3-day cumulative rainfall, and soil saturation to model hypothetical monsoon trigger conditions in 3D perspective.*
 
 ---
 
-### 5. Zone Telemetry & Multi-Factor Explainability
+### 5. Explainable Risk Assessment & Factor Breakdown
 ![TALWEG Zone Telemetry & Explainability](docs/screenshots/05_zone_telemetry_explainability.jpg)
 *Transparent factor attribution breakdown (Rainfall, Soil Saturation, DEM Slope, Historical Density), 7-day risk trajectories, and dual-engine validation (Deterministic baseline vs. Extra Trees ML surrogate).*
+
+---
+
+### 6. Historical Reconstruction & Retrospective Replay
+![TALWEG Historical Event Replay](docs/screenshots/06_historical_event_replay.png)
+*Retrospective evaluation of documented historical landslide events against the risk engine, featuring provenance-tagged input vectors (REAL / DERIVED / SYNTHETIC), escalation timelines, and decision verification ("WOULD HAVE FLAGGED: YES").*
 
 ---
 
