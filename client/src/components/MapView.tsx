@@ -29,7 +29,7 @@ export interface MapViewProps {
   showHazardHistoricalMarker?: boolean;
 }
 
-export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
+function MapViewComponent(
   {
     regions,
     zones,
@@ -45,8 +45,8 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
     hazardStepIndex = 0,
     showHazardCorridor = true,
     showHazardHistoricalMarker = true,
-  },
-  ref
+  }: MapViewProps,
+  ref: React.Ref<MapViewHandle>
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -840,4 +840,6 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
       </div>
     </div>
   );
-};
+}
+
+export const MapView = forwardRef(MapViewComponent);
