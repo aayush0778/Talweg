@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { HazardProgressionResponse } from '../types/api';
 import { getRiskBadgeClasses } from '../lib/riskColors';
 
@@ -33,6 +33,14 @@ export const HazardProgressionPlayer: React.FC<HazardProgressionPlayerProps> = (
 }) => {
   const currentStep = data.timeline[currentStepIndex] || data.timeline[0];
 
+  // Vertical adjustability state
+  const [isCompact, setIsCompact] = useState(false);
+  const [customHeight, setCustomHeight] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartYRef = useRef<number>(0);
+  const startHeightRef = useRef<number>(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
   // Auto-play timer
   useEffect(() => {
     if (!isPlaying) return;
@@ -50,60 +58,294 @@ export const HazardProgressionPlayer: React.FC<HazardProgressionPlayerProps> = (
     return () => clearInterval(timer);
   }, [isPlaying, data.timeline.length, onStepChange]);
 
+  // Drag-to-resize handlers (Mouse & Touch)
+  const handleDragStart = (clientY: number) => {
+    setIsDragging(true);
+    dragStartYRef.current = clientY;
+    const currentHeight = containerRef.current?.getBoundingClientRect().height || 380;
+    startHeightRef.current = currentHeight;
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const delta = dragStartYRef.current - e.clientY;
+      const proposedHeight = startHeightRef.current + delta;
+      const minH = 68;
+      const maxH = Math.min(window.innerHeight * 0.85, 620);
+      const clamped = Math.max(minH, Math.min(maxH, proposedHeight));
+
+      if (clamped <= 140) {
+        setIsCompact(true);
+        setCustomHeight(minH);
+      } else {
+        setIsCompact(false);
+        setCustomHeight(clamped);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      const delta = dragStartYRef.current - e.touches[0].clientY;
+      const proposedHeight = startHeightRef.current + delta;
+      const minH = 68;
+      const maxH = Math.min(window.innerHeight * 0.85, 620);
+      const clamped = Math.max(minH, Math.min(maxH, proposedHeight));
+
+      if (clamped <= 140) {
+        setIsCompact(true);
+        setCustomHeight(minH);
+      } else {
+        setIsCompact(false);
+        setCustomHeight(clamped);
+      }
+    };
+
+    const handleTouchEnd = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('touchmove', handleTouchMove);
+    window.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isDragging]);
+
+  const toggleCompact = () => {
+    if (isCompact) {
+      setIsCompact(false);
+      setCustomHeight(null);
+    } else {
+      setIsCompact(true);
+      setCustomHeight(68);
+    }
+  };
+
   const badgeClasses = getRiskBadgeClasses(currentStep.risk_level);
 
   return (
-    <div className="absolute bottom-6 left-6 right-6 md:left-12 md:right-[440px] z-20 bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto text-slate-100 flex flex-col transition-all duration-300">
-      {/* Top Bar: Title, Provenance Mode Badge, Scientific Disclaimer, and Close Button */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-slate-950/80 border-b border-slate-800">
-        <div className="flex items-center gap-2.5">
-          <span className="text-base">🌊</span>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-white">
-                {data.simulation_mode === 'historical_replay'
-                  ? 'Historical Ground-Truth Replay'
-                  : 'TALWEG Predictive Runout Simulation'}
-              </h3>
-              <span
-                className={`text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider ${
-                  data.simulation_mode === 'historical_replay'
-                    ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
-                    : 'bg-blue-500/15 border-blue-500/40 text-blue-300'
-                }`}
-              >
-                {data.simulation_mode === 'historical_replay'
-                  ? 'HISTORICAL GROUND-TRUTH REPLAY'
-                  : 'PREDICTIVE RUNOUT (CURRENT TELEMETRY)'}
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-400 truncate max-w-md">
-              {data.event_name} • <span className="text-slate-300 font-medium">{data.zone_name}</span>
-            </p>
-          </div>
-        </div>
-
-        {/* Mandatory Scientific Honesty Badge */}
-        <div className="hidden lg:flex flex-col items-center px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-md">
-          <span className="text-[10px] font-bold text-amber-400 tracking-wide uppercase">
-            Illustrative Terrain-Based Movement Simulation
-          </span>
-          <span className="text-[9px] text-amber-300/70">
-            Not a physical landslide trajectory forecast
-          </span>
-        </div>
-
-        <button
-          onClick={onClose}
-          className="text-slate-400 hover:text-white p-1 rounded transition cursor-pointer"
-          title="Exit Progression Replay"
-        >
-          ✕
-        </button>
+    <div
+      ref={containerRef}
+      style={{
+        height: customHeight ? `${customHeight}px` : undefined,
+        maxHeight: isCompact ? '68px' : 'calc(100vh - 100px)',
+      }}
+      className={`absolute bottom-4 left-4 right-4 md:left-10 md:right-[440px] z-20 bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto text-slate-100 flex flex-col ${
+        isDragging ? 'select-none transition-none' : 'transition-all duration-300'
+      }`}
+    >
+      {/* 1. Top Vertical Resize Handle */}
+      <div
+        onMouseDown={(e) => {
+          e.preventDefault();
+          handleDragStart(e.clientY);
+        }}
+        onTouchStart={(e) => {
+          if (e.touches.length === 1) handleDragStart(e.touches[0].clientY);
+        }}
+        onDoubleClick={toggleCompact}
+        className="w-full h-3 flex items-center justify-center cursor-ns-resize group bg-slate-950/90 hover:bg-blue-600/30 transition-colors border-b border-slate-800/80 select-none shrink-0"
+        title="Drag vertically to adjust height • Double-click to toggle Compact View"
+      >
+        <div className="w-12 h-1 rounded-full bg-slate-600 group-hover:bg-blue-400 group-hover:w-20 transition-all shadow-sm" />
       </div>
 
-      {/* Main Player Body: Stepper, Telemetry Gauges, Narrative */}
-      <div className="p-4 space-y-3.5">
+      {isCompact ? (
+        /* COMPACT MODE: Ultra-sleek single-strip toolbar (~56px) allowing full map visibility */
+        <div className="flex items-center justify-between px-3 py-2 bg-slate-950/90 gap-2 h-full">
+          {/* Left: Play/Pause, Step Controls, Phase Label */}
+          <div className="flex items-center gap-2 min-w-0">
+            <button
+              onClick={onTogglePlay}
+              className={`flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold transition cursor-pointer shrink-0 ${
+                isPlaying
+                  ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-sm'
+                  : 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'
+              }`}
+              title={isPlaying ? 'Pause' : 'Play'}
+            >
+              {isPlaying ? '⏸' : '▶'}
+            </button>
+
+            <button
+              onClick={() => onStepChange(Math.max(0, currentStepIndex - 1))}
+              disabled={currentStepIndex === 0}
+              className="px-2 py-1 rounded-md text-[11px] font-medium bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 transition cursor-pointer shrink-0"
+              title="Previous Step"
+            >
+              ◀
+            </button>
+
+            <button
+              onClick={() => onStepChange(Math.min(data.timeline.length - 1, currentStepIndex + 1))}
+              disabled={currentStepIndex === data.timeline.length - 1}
+              className="px-2 py-1 rounded-md text-[11px] font-medium bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 transition cursor-pointer shrink-0"
+              title="Next Step"
+            >
+              ▶
+            </button>
+
+            {/* Stepper Dots */}
+            <div className="hidden sm:flex items-center gap-1.5 ml-1">
+              {data.timeline.map((step, idx) => (
+                <button
+                  key={step.phase}
+                  onClick={() => onStepChange(idx)}
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold border transition-all cursor-pointer ${
+                    idx === currentStepIndex
+                      ? 'bg-blue-600 border-white text-white shadow'
+                      : idx < currentStepIndex
+                      ? 'bg-slate-800 border-blue-500 text-blue-300'
+                      : 'bg-slate-900 border-slate-700 text-slate-500'
+                  }`}
+                  title={`${step.phase}: ${step.stage_title}`}
+                >
+                  {step.phase === 'EVENT' ? '⚡' : `${idx + 1}`}
+                </button>
+              ))}
+            </div>
+
+            {/* Current Phase & Telemetry Summary */}
+            <div className="flex items-center gap-1.5 text-xs truncate ml-1">
+              <span className="font-bold text-white tracking-wide shrink-0">
+                {currentStep.phase}
+              </span>
+              <span
+                className={`text-[9px] font-bold px-1.5 py-0.2 rounded border shrink-0 ${badgeClasses.bg} ${badgeClasses.text} ${badgeClasses.border}`}
+              >
+                {currentStep.risk_score.toFixed(2)} {currentStep.risk_level}
+              </span>
+              <span className="hidden lg:inline text-[11px] text-amber-300 font-mono shrink-0">
+                Runout: {(currentStep.flow_progress * 100).toFixed(0)}%
+              </span>
+            </div>
+          </div>
+
+          {/* Right: Layer Toggles, Expand Button, Close */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={onToggleCorridor}
+              className={`px-2 py-1 rounded text-[10px] font-medium border transition cursor-pointer hidden md:flex items-center gap-1 ${
+                showCorridor
+                  ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                  : 'bg-slate-800/60 border-slate-700 text-slate-400'
+              }`}
+              title="Toggle Predicted Corridor Layer"
+            >
+              <span>{showCorridor ? '✓' : '○'}</span>
+              <span>Corridor</span>
+            </button>
+
+            <button
+              onClick={onToggleTerrain3D}
+              className={`px-2 py-1 rounded text-[10px] font-medium border transition cursor-pointer hidden sm:flex items-center gap-1 ${
+                terrain3D
+                  ? 'bg-purple-500/20 border-purple-500/50 text-purple-300'
+                  : 'bg-slate-800/60 border-slate-700 text-slate-400'
+              }`}
+              title="Toggle 3D Relief Terrain"
+            >
+              <span>🏔️</span>
+              <span>{terrain3D ? '3D' : '2D'}</span>
+            </button>
+
+            {/* Expand Full Dashboard Button */}
+            <button
+              onClick={toggleCompact}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 hover:text-white border border-blue-500/40 transition-all cursor-pointer shadow-sm"
+              title="Expand full telemetry dashboard"
+            >
+              <span>▲</span>
+              <span>Expand</span>
+            </button>
+
+            {/* Exit Close Button */}
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 transition cursor-pointer"
+              title="Exit Simulation"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* EXPANDED FULL DASHBOARD MODE */
+        <>
+          {/* Top Bar: Title, Provenance Mode Badge, Disclaimer, Vertical Control & Close */}
+          <div className="flex items-center justify-between px-4 py-2 bg-slate-950/80 border-b border-slate-800 shrink-0">
+            <div className="flex items-center gap-2.5">
+              <span className="text-base">🌊</span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+                    {data.simulation_mode === 'historical_replay'
+                      ? 'Historical Ground-Truth Replay'
+                      : 'TALWEG Predictive Runout Simulation'}
+                  </h3>
+                  <span
+                    className={`text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider ${
+                      data.simulation_mode === 'historical_replay'
+                        ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+                        : 'bg-blue-500/15 border-blue-500/40 text-blue-300'
+                    }`}
+                  >
+                    {data.simulation_mode === 'historical_replay'
+                      ? 'HISTORICAL GROUND-TRUTH REPLAY'
+                      : 'PREDICTIVE RUNOUT (CURRENT TELEMETRY)'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 truncate max-w-md">
+                  {data.event_name} • <span className="text-slate-300 font-medium">{data.zone_name}</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Scientific Disclaimer */}
+            <div className="hidden xl:flex flex-col items-center px-2.5 py-0.5 bg-amber-500/10 border border-amber-500/30 rounded-md">
+              <span className="text-[10px] font-bold text-amber-400 tracking-wide uppercase">
+                Illustrative Terrain-Based Movement Simulation
+              </span>
+              <span className="text-[9px] text-amber-300/70">
+                Not a physical landslide trajectory forecast
+              </span>
+            </div>
+
+            {/* Top Right Actions: Compact Mode Toggle & Close */}
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={toggleCompact}
+                className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 transition-all cursor-pointer shadow-sm"
+                title="Collapse to compact bottom bar to maximize visual map area"
+              >
+                <span>▼</span>
+                <span>Compact</span>
+              </button>
+
+              <button
+                onClick={onClose}
+                className="text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-800 transition cursor-pointer"
+                title="Exit Progression Replay"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Scrollable Dashboard Body */}
+          <div className="p-4 space-y-3.5 overflow-y-auto flex-1">
         {/* Timeline Stepper Nodes */}
         <div className="relative flex items-center justify-between px-2">
           {/* Background Connecting Line */}
@@ -337,6 +579,8 @@ export const HazardProgressionPlayer: React.FC<HazardProgressionPlayerProps> = (
           </div>
         </div>
       </div>
-    </div>
-  );
+    </>
+  )}
+</div>
+);
 };
