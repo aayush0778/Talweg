@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useImperativeHandle, forwardRef } from 'react';
 import maplibregl, { GeoJSONSource, MapLayerMouseEvent, MapMouseEvent } from 'maplibre-gl';
 import { Region, RiskZone, LandslideEvent } from '../types/api';
 import { MAP_STYLE, PANEL_WIDTH, DEFAULT_CENTER, DEFAULT_ZOOM } from '../config/map';
@@ -6,7 +6,13 @@ import { toZoneFeatureCollection, toEventFeatureCollection, toZoneLabelFeatures 
 import { buildEventPopup } from '../lib/popup';
 import { MapLegend } from './MapLegend';
 
-interface MapViewProps {
+export interface MapViewHandle {
+  triggerTopView: () => void;
+  triggerFrontView: () => void;
+  toggle3D: () => void;
+}
+
+export interface MapViewProps {
   regions: Region[] | null;
   zones: RiskZone[] | null;
   events: LandslideEvent[] | null;
@@ -15,26 +21,34 @@ interface MapViewProps {
   mapViewMode?: 'top' | 'focus';
   onMapViewModeChange?: (mode: 'top' | 'focus') => void;
   sidebarWidth?: number;
+  terrain3D?: boolean;
+  onTerrain3DChange?: (enabled: boolean) => void;
 }
 
-export const MapView: React.FC<MapViewProps> = ({
-  regions,
-  zones,
-  events,
-  selectedZoneId,
-  onSelectZone,
-  mapViewMode,
-  onMapViewModeChange,
-  sidebarWidth,
-}) => {
+export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
+  {
+    regions,
+    zones,
+    events,
+    selectedZoneId,
+    onSelectZone,
+    mapViewMode,
+    onMapViewModeChange,
+    sidebarWidth,
+    terrain3D: controlledTerrain3D,
+    onTerrain3DChange,
+  },
+  ref
+) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
   const didFitRef = useRef<boolean>(false);
   const [mapReady, setMapReady] = useState<boolean>(false);
-  const [terrain3D, setTerrain3D] = useState<boolean>(false);
+  const [internalTerrain3D, setInternalTerrain3D] = useState<boolean>(false);
   const [internalViewMode, setInternalViewMode] = useState<'top' | 'focus'>('top');
 
+  const terrain3D = controlledTerrain3D ?? internalTerrain3D;
   const activeViewMode = mapViewMode ?? internalViewMode;
   const effectiveSidebarWidth = sidebarWidth ?? PANEL_WIDTH;
 
@@ -74,7 +88,8 @@ export const MapView: React.FC<MapViewProps> = ({
     if (!map) return;
     if (terrain3D) {
       disable3DTerrain(map);
-      setTerrain3D(false);
+      setInternalTerrain3D(false);
+      onTerrain3DChange?.(false);
     }
     if (onMapViewModeChange) {
       onMapViewModeChange('top');
@@ -91,20 +106,27 @@ export const MapView: React.FC<MapViewProps> = ({
         padding: { top: 50, bottom: 50, left: 50, right: effectiveSidebarWidth + 50 },
         pitch: 0,
         bearing: 0,
-        duration: 1000,
+        duration: 900,
       }
     );
-  }, [regions, terrain3D, effectiveSidebarWidth, onMapViewModeChange]);
+  }, [regions, terrain3D, effectiveSidebarWidth, onMapViewModeChange, onTerrain3DChange]);
 
   const handleFocusZone = useCallback(() => {
     const map = mapRef.current;
-    if (!map || !selectedZoneId || !zones) return;
+    if (!map) return;
+
+    const targetId = selectedZoneId || (zones && zones.length > 0 ? zones[0].id : null);
+    if (targetId && !selectedZoneId) {
+      onSelectZone(targetId);
+    }
+
     if (onMapViewModeChange) {
       onMapViewModeChange('focus');
     } else {
       setInternalViewMode('focus');
     }
-    const target = zones.find((z) => z.id === selectedZoneId);
+
+    const target = zones?.find((z) => z.id === targetId);
     if (target?.centroid) {
       if (terrain3D) {
         map.flyTo({
@@ -112,7 +134,7 @@ export const MapView: React.FC<MapViewProps> = ({
           zoom: 12.2,
           pitch: 55,
           bearing: 15,
-          duration: 1200,
+          duration: 1100,
           padding: { top: 40, bottom: 40, left: 40, right: effectiveSidebarWidth + 40 },
         });
       } else {
@@ -121,23 +143,38 @@ export const MapView: React.FC<MapViewProps> = ({
           zoom: 11.5,
           pitch: 0,
           bearing: 0,
-          duration: 1200,
+          duration: 1100,
           padding: { top: 40, bottom: 40, left: 40, right: effectiveSidebarWidth + 40 },
         });
       }
     }
-  }, [selectedZoneId, zones, terrain3D, effectiveSidebarWidth, onMapViewModeChange]);
+  }, [selectedZoneId, zones, terrain3D, effectiveSidebarWidth, onSelectZone, onMapViewModeChange]);
 
-  const handleToggleTerrain = () => {
+  const handleToggleTerrain = useCallback(() => {
     const map = mapRef.current;
     if (!map) return;
     if (!terrain3D) {
       enable3DTerrain(map);
-      setTerrain3D(true);
+      setInternalTerrain3D(true);
+      onTerrain3DChange?.(true);
+      const target = zones?.find((z) => z.id === selectedZoneId);
+      if (target?.centroid) {
+        map.flyTo({
+          center: [target.centroid.longitude, target.centroid.latitude],
+          zoom: 12.2,
+          pitch: 55,
+          bearing: 15,
+          duration: 1000,
+          padding: { top: 40, bottom: 40, left: 40, right: effectiveSidebarWidth + 40 },
+        });
+      } else {
+        map.easeTo({ pitch: 55, bearing: 15, duration: 900 });
+      }
     } else {
       disable3DTerrain(map);
-      setTerrain3D(false);
-      if (activeViewMode === 'top') {
+      setInternalTerrain3D(false);
+      onTerrain3DChange?.(false);
+      if (activeViewMode === 'top' || !selectedZoneId) {
         const bounds = regions?.[0]?.bounds || [88.0, 27.08, 88.92, 28.13];
         map.fitBounds(
           [
@@ -151,9 +188,21 @@ export const MapView: React.FC<MapViewProps> = ({
             duration: 800,
           }
         );
+      } else {
+        map.easeTo({ pitch: 0, bearing: 0, duration: 800 });
       }
     }
-  };
+  }, [terrain3D, zones, selectedZoneId, activeViewMode, regions, effectiveSidebarWidth, onTerrain3DChange]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      triggerTopView: handleTopView,
+      triggerFrontView: handleFocusZone,
+      toggle3D: handleToggleTerrain,
+    }),
+    [handleTopView, handleFocusZone, handleToggleTerrain]
+  );
 
   const closePopup = () => {
     if (popupRef.current) {
@@ -367,7 +416,26 @@ export const MapView: React.FC<MapViewProps> = ({
   // ----- Effect 6: Fly to Selected Zone Centroid or Preserve Top View -----
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapReady || !selectedZoneId || !zones) return;
+    if (!map || !mapReady || !zones) return;
+
+    if (!selectedZoneId) {
+      if (activeViewMode === 'top' && !terrain3D) {
+        const bounds = regions?.[0]?.bounds || [88.0, 27.08, 88.92, 28.13];
+        map.fitBounds(
+          [
+            [bounds[0], bounds[1]],
+            [bounds[2], bounds[3]],
+          ],
+          {
+            padding: { top: 50, bottom: 50, left: 50, right: effectiveSidebarWidth + 50 },
+            pitch: 0,
+            bearing: 0,
+            duration: 800,
+          }
+        );
+      }
+      return;
+    }
 
     if (activeViewMode === 'top' && !terrain3D) {
       // In Top View, maintain regional nadir view framing with 0° pitch/bearing
@@ -492,26 +560,26 @@ export const MapView: React.FC<MapViewProps> = ({
               ? 'bg-blue-600 text-white shadow-md shadow-blue-950/50'
               : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
           }`}
-          title="Top View (State Overview - Nadir 0°)"
+          title="Top View [T] (State Overview - Nadir 0°)"
         >
           <span>🗺️</span>
           <span>Top View</span>
+          <kbd className="px-1.5 py-0.5 rounded bg-slate-800/90 text-[10px] text-slate-300 font-mono border border-slate-700/80">T</kbd>
         </button>
 
-        {selectedZoneId && (
-          <button
-            onClick={handleFocusZone}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
-              activeViewMode === 'focus' && !terrain3D
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-950/50'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
-            }`}
-            title="Focus on Selected Zone Centroid"
-          >
-            <span>🎯</span>
-            <span>Focus Zone</span>
-          </button>
-        )}
+        <button
+          onClick={handleFocusZone}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+            activeViewMode === 'focus' && !terrain3D
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-950/50'
+              : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+          }`}
+          title="Front / Focus View [F] (Focus on Zone Centroid)"
+        >
+          <span>🎯</span>
+          <span>{selectedZoneId ? 'Focus Zone' : 'Front View'}</span>
+          <kbd className="px-1.5 py-0.5 rounded bg-slate-800/90 text-[10px] text-slate-300 font-mono border border-slate-700/80">F</kbd>
+        </button>
 
         <div className="w-[1px] h-4 bg-slate-700 mx-1" />
 
@@ -522,10 +590,11 @@ export const MapView: React.FC<MapViewProps> = ({
               ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/50'
               : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
           }`}
-          title={terrain3D ? 'Disable 3D Terrain (Return to 2D Top View)' : 'Explore in 3D Relief Terrain (55° Pitch)'}
+          title={terrain3D ? 'Disable 3D Terrain [D] (Return to 2D Top View)' : 'Explore in 3D Relief Terrain [D] (55° Pitch)'}
         >
           <span>🏔️</span>
           <span>{terrain3D ? '3D Active' : '3D Terrain'}</span>
+          <kbd className="px-1.5 py-0.5 rounded bg-slate-800/90 text-[10px] text-slate-300 font-mono border border-slate-700/80">D</kbd>
         </button>
       </div>
     </div>

@@ -49,6 +49,8 @@ interface ZonePanelProps {
   onRetryEnv: () => void;
   mapViewMode?: 'top' | 'focus';
   onMapViewModeChange?: (mode: 'top' | 'focus') => void;
+  terrain3D?: boolean;
+  onToggleTerrain?: () => void;
 }
 
 export const ZonePanel: React.FC<ZonePanelProps> = ({
@@ -82,6 +84,8 @@ export const ZonePanel: React.FC<ZonePanelProps> = ({
   onRetryEnv,
   mapViewMode,
   onMapViewModeChange,
+  terrain3D,
+  onToggleTerrain,
 }) => {
   const [viewMode, setViewMode] = useState<'list' | 'dashboard'>('list');
 
@@ -140,6 +144,8 @@ export const ZonePanel: React.FC<ZonePanelProps> = ({
           onRetryEnv={onRetryEnv}
           mapViewMode={mapViewMode}
           onMapViewModeChange={onMapViewModeChange}
+          terrain3D={terrain3D}
+          onToggleTerrain={onToggleTerrain}
         />
       ) : zones && zones.length > 0 ? (
         <div className="flex flex-col h-full">

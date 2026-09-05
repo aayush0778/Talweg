@@ -50,6 +50,8 @@ interface ZoneDetailProps {
   onRetryEnv?: () => void;
   mapViewMode?: 'top' | 'focus';
   onMapViewModeChange?: (mode: 'top' | 'focus') => void;
+  terrain3D?: boolean;
+  onToggleTerrain?: () => void;
 }
 
 export const ZoneDetail: React.FC<ZoneDetailProps> = ({
@@ -73,6 +75,8 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
   onRetryEnv,
   mapViewMode,
   onMapViewModeChange,
+  terrain3D,
+  onToggleTerrain,
 }) => {
   const [replayEventId, setReplayEventId] = useState<string | null>(null);
 
@@ -131,33 +135,51 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
           {/* Map Perspective Selector */}
           <div className="flex items-center justify-between py-1 px-2 rounded-lg bg-slate-950/60 border border-slate-800">
             <span className="text-[11px] font-medium text-slate-400">Map Perspective:</span>
-            <div className="inline-flex rounded-md bg-slate-900 border border-slate-700/80 p-0.5 text-xs">
+            <div className="inline-flex rounded-md bg-slate-900 border border-slate-700/80 p-0.5 text-xs gap-0.5">
               <button
                 type="button"
                 onClick={() => onMapViewModeChange?.('top')}
                 className={`px-2 py-0.5 rounded text-[11px] font-semibold transition cursor-pointer flex items-center gap-1 ${
-                  mapViewMode === 'top'
+                  mapViewMode === 'top' && !terrain3D
                     ? 'bg-blue-600 text-white shadow'
                     : 'text-slate-400 hover:text-white'
                 }`}
-                title="Top View (State Overview - 0° Nadir)"
+                title="Top View [T] (State Overview - 0° Nadir)"
               >
                 <span>🗺️</span>
-                <span>Top View</span>
+                <span>Top</span>
+                <span className="text-[9px] opacity-70 font-mono">[T]</span>
               </button>
               <button
                 type="button"
                 onClick={() => onMapViewModeChange?.('focus')}
                 className={`px-2 py-0.5 rounded text-[11px] font-semibold transition cursor-pointer flex items-center gap-1 ${
-                  mapViewMode === 'focus'
+                  mapViewMode === 'focus' && !terrain3D
                     ? 'bg-blue-600 text-white shadow'
                     : 'text-slate-400 hover:text-white'
                 }`}
-                title="Focus Zone (Centroid close-up)"
+                title="Front / Focus View [F] (Centroid close-up)"
               >
                 <span>🎯</span>
-                <span>Focus Zone</span>
+                <span>Focus</span>
+                <span className="text-[9px] opacity-70 font-mono">[F]</span>
               </button>
+              {onToggleTerrain && (
+                <button
+                  type="button"
+                  onClick={onToggleTerrain}
+                  className={`px-2 py-0.5 rounded text-[11px] font-semibold transition cursor-pointer flex items-center gap-1 ${
+                    terrain3D
+                      ? 'bg-emerald-600 text-white shadow'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                  title={terrain3D ? 'Disable 3D Terrain [D]' : 'Explore 3D Terrain [D] (55° Pitch)'}
+                >
+                  <span>🏔️</span>
+                  <span>{terrain3D ? '3D Active' : '3D'}</span>
+                  <span className="text-[9px] opacity-70 font-mono">[D]</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

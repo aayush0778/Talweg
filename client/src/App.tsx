@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
-import { MapView } from './components/MapView';
+import { MapView, MapViewHandle } from './components/MapView';
 import { ZonePanel } from './components/ZonePanel';
 import { AlertBanner } from './components/AlertBanner';
 import { ShortcutOverlay } from './components/ShortcutOverlay';
@@ -33,8 +33,10 @@ export const App: React.FC = () => {
   const { width, isDesktop, onHandlePointerDown, resetWidth, nudge } = useSidebarResize();
 
   // Selection & View Mode state
+  const mapViewRef = useRef<MapViewHandle>(null);
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [mapViewMode, setMapViewMode] = useState<'top' | 'focus'>('top');
+  const [terrain3D, setTerrain3D] = useState<boolean>(false);
 
   const selectedZone = zonesQ.data?.find((z) => z.id === selectedZoneId) ?? null;
 
@@ -95,11 +97,12 @@ export const App: React.FC = () => {
   const handleDeselect = useCallback(() => {
     setSelectedZoneId(null);
     setMapViewMode('top');
+    mapViewRef.current?.triggerTopView();
   }, []);
 
   const [showShortcuts, setShowShortcuts] = useState(false);
 
-  // Global Keyboard Shortcuts (Esc, 1-6, R, T, F, ?)
+  // Global Keyboard Shortcuts (Esc, 1-6, R, T, F, D, ?)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -113,15 +116,16 @@ export const App: React.FC = () => {
         } else if (selectedZoneId) {
           setSelectedZoneId(null);
           setMapViewMode('top');
+          mapViewRef.current?.triggerTopView();
         }
       } else if (e.key === '?' || (e.shiftKey && e.key === '/')) {
         setShowShortcuts((prev) => !prev);
       } else if (e.key === 't' || e.key === 'T') {
-        setMapViewMode('top');
+        mapViewRef.current?.triggerTopView();
       } else if (e.key === 'f' || e.key === 'F') {
-        if (selectedZoneId) {
-          setMapViewMode('focus');
-        }
+        mapViewRef.current?.triggerFrontView();
+      } else if (e.key === 'd' || e.key === 'D' || (e.altKey && e.key === '3')) {
+        mapViewRef.current?.toggle3D();
       } else if ((e.key === 'r' || e.key === 'R') && scenario.isModified) {
         scenario.reset();
       } else if (/^[1-6]$/.test(e.key)) {
@@ -158,6 +162,7 @@ export const App: React.FC = () => {
         {/* WebGL GIS Map Layer (recolors via displayZones prop) */}
         <MapErrorBoundary>
           <MapView
+            ref={mapViewRef}
             regions={regionsQ.data}
             zones={displayZones}
             events={eventsQ.data}
@@ -166,6 +171,8 @@ export const App: React.FC = () => {
             mapViewMode={mapViewMode}
             onMapViewModeChange={setMapViewMode}
             sidebarWidth={isDesktop ? width : undefined}
+            terrain3D={terrain3D}
+            onTerrain3DChange={setTerrain3D}
           />
         </MapErrorBoundary>
 
@@ -201,6 +208,8 @@ export const App: React.FC = () => {
           onRetryEnv={envQ.reload}
           mapViewMode={mapViewMode}
           onMapViewModeChange={setMapViewMode}
+          terrain3D={terrain3D}
+          onToggleTerrain={() => mapViewRef.current?.toggle3D()}
         />
       </main>
     </div>
