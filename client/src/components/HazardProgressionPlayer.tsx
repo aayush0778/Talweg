@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { HazardProgressionResponse } from '../types/api';
-import { getRiskColor, getRiskBgColor } from '../lib/riskColors';
+import { getRiskBadgeClasses } from '../lib/riskColors';
 
 interface HazardProgressionPlayerProps {
   data: HazardProgressionResponse;
@@ -50,8 +50,7 @@ export const HazardProgressionPlayer: React.FC<HazardProgressionPlayerProps> = (
     return () => clearInterval(timer);
   }, [isPlaying, data.timeline.length, onStepChange]);
 
-  const riskColor = getRiskColor(currentStep.risk_level);
-  const riskBg = getRiskBgColor(currentStep.risk_level);
+  const badgeClasses = getRiskBadgeClasses(currentStep.risk_level);
 
   return (
     <div className="absolute bottom-6 left-6 right-6 md:left-12 md:right-[440px] z-20 bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto text-slate-100 flex flex-col transition-all duration-300">
@@ -176,13 +175,13 @@ export const HazardProgressionPlayer: React.FC<HazardProgressionPlayerProps> = (
                 Risk Score
               </span>
               <span
-                className={`text-[9px] font-bold px-1.5 py-0.2 rounded border ${riskBg} ${riskColor}`}
+                className={`text-[9px] font-bold px-1.5 py-0.2 rounded border ${badgeClasses.bg} ${badgeClasses.text} ${badgeClasses.border}`}
               >
                 {currentStep.risk_level}
               </span>
             </div>
             <div className="flex items-baseline gap-1.5 mt-1">
-              <span className={`text-xl font-extrabold font-mono ${riskColor}`}>
+              <span className={`text-xl font-extrabold font-mono ${badgeClasses.text}`}>
                 {currentStep.risk_score.toFixed(2)}
               </span>
               {currentStep.threshold_crossed && (

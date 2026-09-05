@@ -59,3 +59,8 @@ export function getRiskBadgeClasses(level: RiskLevel | null | undefined): {
       };
   }
 }
+
+export function getRiskBgColor(level: RiskLevel | null | undefined): string {
+  return getRiskBadgeClasses(level).bg;
+}
+
