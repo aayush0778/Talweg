@@ -15,6 +15,7 @@ import {
   HistoricalReplayListItem,
   HistoricalReplayResponse,
   ValidationSummaryResponse,
+  HazardProgressionResponse,
 } from '../types/api';
 
 export class ApiClientError extends Error {
@@ -185,3 +186,8 @@ export function replayHistoricalEvent(id: string): Promise<HistoricalReplayRespo
 export function fetchValidationSummary(): Promise<ValidationSummaryResponse> {
   return apiGet<ValidationSummaryResponse>('/api/model-validation/summary');
 }
+
+export function fetchHazardProgression(id: string): Promise<HazardProgressionResponse> {
+  return apiGet<HazardProgressionResponse>(`/api/historical-replays/${encodeURIComponent(id)}/hazard-progression`);
+}
+

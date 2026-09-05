@@ -5,6 +5,8 @@ import { ZonePanel } from './components/ZonePanel';
 import { AlertBanner } from './components/AlertBanner';
 import { ShortcutOverlay } from './components/ShortcutOverlay';
 import { MapErrorBoundary } from './components/MapErrorBoundary';
+import { HazardProgressionPlayer } from './components/HazardProgressionPlayer';
+import { HazardProgressionResponse } from './types/api';
 import { useApiResource } from './hooks/useApiResource';
 import { useHealth } from './hooks/useHealth';
 import { useScenario } from './hooks/useScenario';
@@ -17,6 +19,7 @@ import {
   fetchEvents,
   fetchEnvironment,
   predictRisk,
+  fetchHazardProgression,
 } from './lib/apiClient';
 
 export const App: React.FC = () => {
@@ -37,6 +40,13 @@ export const App: React.FC = () => {
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [mapViewMode, setMapViewMode] = useState<'top' | 'focus'>('top');
   const [terrain3D, setTerrain3D] = useState<boolean>(false);
+
+  // Hazard Progression Animation state
+  const [hazardProgressionData, setHazardProgressionData] = useState<HazardProgressionResponse | null>(null);
+  const [hazardStepIndex, setHazardStepIndex] = useState<number>(0);
+  const [isHazardPlaying, setIsHazardPlaying] = useState<boolean>(false);
+  const [showHazardCorridor, setShowHazardCorridor] = useState<boolean>(true);
+  const [showHazardHistoricalMarker, setShowHazardHistoricalMarker] = useState<boolean>(true);
 
   const selectedZone = zonesQ.data?.find((z) => z.id === selectedZoneId) ?? null;
 
@@ -100,6 +110,24 @@ export const App: React.FC = () => {
     mapViewRef.current?.triggerTopView();
   }, []);
 
+  const handleLaunchHazardProgression = useCallback(async (replayId: string) => {
+    try {
+      const data = await fetchHazardProgression(replayId);
+      setHazardProgressionData(data);
+      setHazardStepIndex(0);
+      setIsHazardPlaying(true);
+      setTerrain3D(true);
+    } catch (err) {
+      console.error('Failed to load hazard progression simulation:', err);
+    }
+  }, []);
+
+  const handleCloseHazardProgression = useCallback(() => {
+    setHazardProgressionData(null);
+    setIsHazardPlaying(false);
+    setHazardStepIndex(0);
+  }, []);
+
   const [showShortcuts, setShowShortcuts] = useState(false);
 
   // Global Keyboard Shortcuts (Esc, 1-6, R, T, F, D, ?)
@@ -113,6 +141,8 @@ export const App: React.FC = () => {
       if (e.key === 'Escape') {
         if (showShortcuts) {
           setShowShortcuts(false);
+        } else if (hazardProgressionData) {
+          handleCloseHazardProgression();
         } else if (selectedZoneId) {
           setSelectedZoneId(null);
           setMapViewMode('top');
@@ -139,7 +169,7 @@ export const App: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showShortcuts, selectedZoneId, scenario, zonesQ.data]);
+  }, [showShortcuts, selectedZoneId, scenario, zonesQ.data, hazardProgressionData, handleCloseHazardProgression]);
 
   return (
     <div className="flex flex-col h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden select-none">
@@ -173,6 +203,10 @@ export const App: React.FC = () => {
             sidebarWidth={isDesktop ? width : undefined}
             terrain3D={terrain3D}
             onTerrain3DChange={setTerrain3D}
+            hazardProgressionData={hazardProgressionData}
+            hazardStepIndex={hazardStepIndex}
+            showHazardCorridor={showHazardCorridor}
+            showHazardHistoricalMarker={showHazardHistoricalMarker}
           />
         </MapErrorBoundary>
 
@@ -210,7 +244,26 @@ export const App: React.FC = () => {
           onMapViewModeChange={setMapViewMode}
           terrain3D={terrain3D}
           onToggleTerrain={() => mapViewRef.current?.toggle3D()}
+          onLaunchHazardProgression={handleLaunchHazardProgression}
         />
+
+        {/* Floating Terrain-Aware Hazard Progression Replay Player */}
+        {hazardProgressionData && (
+          <HazardProgressionPlayer
+            data={hazardProgressionData}
+            currentStepIndex={hazardStepIndex}
+            onStepChange={setHazardStepIndex}
+            isPlaying={isHazardPlaying}
+            onTogglePlay={() => setIsHazardPlaying((prev) => !prev)}
+            onClose={handleCloseHazardProgression}
+            showCorridor={showHazardCorridor}
+            onToggleCorridor={() => setShowHazardCorridor((prev) => !prev)}
+            showHistoricalMarker={showHazardHistoricalMarker}
+            onToggleHistoricalMarker={() => setShowHazardHistoricalMarker((prev) => !prev)}
+            terrain3D={terrain3D}
+            onToggleTerrain3D={() => setTerrain3D((prev) => !prev)}
+          />
+        )}
       </main>
     </div>
   );

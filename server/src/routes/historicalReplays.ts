@@ -4,6 +4,7 @@ import {
   getHistoricalReplayById,
   replayHistoricalEvent,
 } from '../services/historicalReplay';
+import { getHazardProgression } from '../services/hazardProgression';
 
 const router = Router();
 
@@ -50,6 +51,23 @@ router.get('/historical-replays/:id/replay', async (req: Request, res: Response,
       return;
     }
     res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * GET /api/historical-replays/:id/hazard-progression
+ * Returns terrain-derived hazard progression timeline, flow path, and uncertainty corridor.
+ */
+router.get('/historical-replays/:id/hazard-progression', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const progression = await getHazardProgression(req.params.id);
+    if (!progression) {
+      res.status(404).json({ error: { message: 'Hazard progression data not found for event', code: 'NOT_FOUND' } });
+      return;
+    }
+    res.json(progression);
   } catch (err) {
     next(err);
   }

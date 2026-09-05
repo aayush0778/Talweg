@@ -245,3 +245,54 @@ export interface ValidationSummaryResponse {
   } | null;
   reason?: string;
 }
+
+// ----- Hazard Progression & Predictive Runout Replay -----
+
+export type HazardProgressionPhase = 'T-72h' | 'T-48h' | 'T-24h' | 'T-6h' | 'EVENT';
+
+export interface HazardTimelineStep {
+  phase: HazardProgressionPhase;
+  time_offset_hours: number;
+  rainfall_24h: number;
+  rainfall_3d: number;
+  soil_moisture: number;
+  risk_score: number;
+  risk_level: RiskLevel;
+  flow_progress: number;
+  stage_title: string;
+  stage_description: string;
+  threshold_crossed: boolean;
+}
+
+export interface HazardCorridorGeometry {
+  initiation_point: [number, number, number]; // [lon, lat, elev_m]
+  flow_path: Array<[number, number, number]>; // [lon, lat, elev_m]
+  corridor_polygon: {
+    type: 'Feature';
+    geometry: {
+      type: 'Polygon';
+      coordinates: number[][][];
+    };
+    properties: Record<string, unknown>;
+  };
+  deposition_polygon: {
+    type: 'Feature';
+    geometry: {
+      type: 'Polygon';
+      coordinates: number[][][];
+    };
+    properties: Record<string, unknown>;
+  };
+  historical_event_point: [number, number]; // [lon, lat]
+}
+
+export interface HazardProgressionResponse {
+  replay_id: string;
+  event_name: string;
+  event_date: string;
+  zone_id: string;
+  zone_name: string;
+  geometry: HazardCorridorGeometry;
+  timeline: HazardTimelineStep[];
+  disclaimer: string;
+}

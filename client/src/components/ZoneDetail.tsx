@@ -52,6 +52,7 @@ interface ZoneDetailProps {
   onMapViewModeChange?: (mode: 'top' | 'focus') => void;
   terrain3D?: boolean;
   onToggleTerrain?: () => void;
+  onLaunchHazardProgression?: (replayId: string) => void;
 }
 
 export const ZoneDetail: React.FC<ZoneDetailProps> = ({
@@ -77,6 +78,7 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
   onMapViewModeChange,
   terrain3D,
   onToggleTerrain,
+  onLaunchHazardProgression,
 }) => {
   const [replayEventId, setReplayEventId] = useState<string | null>(null);
 
@@ -415,16 +417,27 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
                   className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800 text-xs space-y-1"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       <span className="font-mono text-[11px] text-slate-400">
                         {formatEventDate(evt.date)}
                       </span>
                       <button
                         onClick={() => setReplayEventId(`replay-${evt.id}`)}
-                        className="px-2 py-0.5 text-[10px] font-semibold bg-indigo-950/80 text-indigo-300 border border-indigo-800/60 rounded hover:bg-indigo-900 transition-colors"
+                        className="px-2 py-0.5 text-[10px] font-semibold bg-indigo-950/80 text-indigo-300 border border-indigo-800/60 rounded hover:bg-indigo-900 transition-colors cursor-pointer"
+                        title="View Historical Assessment Replay"
                       >
                         Replay
                       </button>
+                      {onLaunchHazardProgression && (
+                        <button
+                          onClick={() => onLaunchHazardProgression(`replay-${evt.id}`)}
+                          className="px-2 py-0.5 text-[10px] font-semibold bg-blue-950/80 text-blue-300 border border-blue-800/60 rounded hover:bg-blue-900 transition-colors flex items-center gap-1 cursor-pointer"
+                          title="Simulate terrain descent hazard progression"
+                        >
+                          <span>🌊</span>
+                          <span>Runout</span>
+                        </button>
+                      )}
                     </div>
                     <div className="flex gap-1">
                       {evt.trigger && (
@@ -468,6 +481,7 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
         <HistoricalReplayModal
           id={replayEventId}
           onClose={() => setReplayEventId(null)}
+          onLaunchProgression={onLaunchHazardProgression}
         />
       )}
     </div>

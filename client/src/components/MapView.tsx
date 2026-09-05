@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback, useImperativeHandle, forwardRef } from 'react';
 import maplibregl, { GeoJSONSource, MapLayerMouseEvent, MapMouseEvent } from 'maplibre-gl';
-import { Region, RiskZone, LandslideEvent } from '../types/api';
+import { Region, RiskZone, LandslideEvent, HazardProgressionResponse } from '../types/api';
 import { MAP_STYLE, PANEL_WIDTH, DEFAULT_CENTER, DEFAULT_ZOOM } from '../config/map';
 import { toZoneFeatureCollection, toEventFeatureCollection, toZoneLabelFeatures } from '../lib/geo';
 import { buildEventPopup } from '../lib/popup';
@@ -23,6 +23,10 @@ export interface MapViewProps {
   sidebarWidth?: number;
   terrain3D?: boolean;
   onTerrain3DChange?: (enabled: boolean) => void;
+  hazardProgressionData?: HazardProgressionResponse | null;
+  hazardStepIndex?: number;
+  showHazardCorridor?: boolean;
+  showHazardHistoricalMarker?: boolean;
 }
 
 export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
@@ -37,6 +41,10 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
     sidebarWidth,
     terrain3D: controlledTerrain3D,
     onTerrain3DChange,
+    hazardProgressionData,
+    hazardStepIndex = 0,
+    showHazardCorridor = true,
+    showHazardHistoricalMarker = true,
   },
   ref
 ) {
@@ -339,6 +347,104 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
         },
       });
 
+      // 3. Hazard Progression / Predictive Runout Simulation Sources & Layers
+      map.addSource('hazard-corridor', {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      });
+
+      map.addSource('hazard-flow', {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      });
+
+      map.addSource('hazard-initiation', {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      });
+
+      map.addSource('hazard-historical-target', {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      });
+
+      // Hazard corridor uncertainty envelope fill
+      map.addLayer({
+        id: 'hazard-corridor-fill',
+        type: 'fill',
+        source: 'hazard-corridor',
+        paint: {
+          'fill-color': '#f59e0b',
+          'fill-opacity': 0.22,
+        },
+      });
+
+      // Hazard corridor dashed boundary
+      map.addLayer({
+        id: 'hazard-corridor-outline',
+        type: 'line',
+        source: 'hazard-corridor',
+        paint: {
+          'line-color': '#f59e0b',
+          'line-width': 2,
+          'line-dasharray': [3, 2],
+          'line-opacity': 0.85,
+        },
+      });
+
+      // Hazard flow descent line glow
+      map.addLayer({
+        id: 'hazard-flow-glow',
+        type: 'line',
+        source: 'hazard-flow',
+        paint: {
+          'line-color': '#f97316',
+          'line-width': 8,
+          'line-opacity': 0.45,
+          'line-blur': 3,
+        },
+      });
+
+      // Hazard flow descent center line
+      map.addLayer({
+        id: 'hazard-flow-line',
+        type: 'line',
+        source: 'hazard-flow',
+        paint: {
+          'line-color': '#ef4444',
+          'line-width': 4,
+          'line-opacity': 0.95,
+        },
+      });
+
+      // Initiation point beacon on ridge
+      map.addLayer({
+        id: 'hazard-initiation-point',
+        type: 'circle',
+        source: 'hazard-initiation',
+        paint: {
+          'circle-radius': 9,
+          'circle-color': '#ef4444',
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 2.5,
+          'circle-opacity': 0.95,
+        },
+      });
+
+      // Recorded historical ground-truth target
+      map.addLayer({
+        id: 'hazard-historical-target',
+        type: 'circle',
+        source: 'hazard-historical-target',
+        paint: {
+          'circle-radius': 11,
+          'circle-color': '#10b981',
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 3,
+          'circle-opacity': 0.95,
+        },
+      });
+
       setMapReady(true);
     });
 
@@ -545,6 +651,141 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
       closePopup();
     };
   }, [mapReady, onSelectZone]);
+
+  // ----- Effect 7.5: Sync 3D Terrain DEM when terrain3D prop changes -----
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+
+    if (terrain3D) {
+      enable3DTerrain(map);
+    } else {
+      disable3DTerrain(map);
+    }
+  }, [mapReady, terrain3D]);
+
+  // ----- Effect 8: Sync Hazard Progression Simulation Layers & Animation -----
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+
+    const corridorSource = map.getSource('hazard-corridor') as GeoJSONSource | undefined;
+    const flowSource = map.getSource('hazard-flow') as GeoJSONSource | undefined;
+    const initiationSource = map.getSource('hazard-initiation') as GeoJSONSource | undefined;
+    const targetSource = map.getSource('hazard-historical-target') as GeoJSONSource | undefined;
+
+    if (!hazardProgressionData) {
+      // Clear all hazard progression layers
+      corridorSource?.setData({ type: 'FeatureCollection', features: [] });
+      flowSource?.setData({ type: 'FeatureCollection', features: [] });
+      initiationSource?.setData({ type: 'FeatureCollection', features: [] });
+      targetSource?.setData({ type: 'FeatureCollection', features: [] });
+      return;
+    }
+
+    const { geometry, timeline } = hazardProgressionData;
+    const currentStep = timeline[hazardStepIndex] || timeline[0];
+    const progress = currentStep.flow_progress;
+
+    // 1. Corridor (Polygon envelope & deposition fan)
+    if (corridorSource) {
+      if (showHazardCorridor) {
+        corridorSource.setData({
+          type: 'FeatureCollection',
+          features: [geometry.corridor_polygon, geometry.deposition_polygon],
+        });
+      } else {
+        corridorSource.setData({ type: 'FeatureCollection', features: [] });
+      }
+    }
+
+    // 2. Flow Line (Growing slice along descent coordinates)
+    if (flowSource) {
+      if (showHazardCorridor && progress > 0) {
+        const fullCoords = geometry.flow_path.map(([lon, lat]) => [lon, lat]);
+        const count = Math.max(2, Math.ceil(fullCoords.length * progress));
+        const activeSlice = fullCoords.slice(0, count);
+
+        flowSource.setData({
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              geometry: {
+                type: 'LineString',
+                coordinates: activeSlice,
+              },
+              properties: { progress },
+            },
+          ],
+        });
+      } else {
+        flowSource.setData({ type: 'FeatureCollection', features: [] });
+      }
+    }
+
+    // 3. Initiation Point (lights up on ridge when threshold is crossed or progressing)
+    if (initiationSource) {
+      if (showHazardCorridor && (currentStep.threshold_crossed || progress > 0)) {
+        initiationSource.setData({
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              geometry: {
+                type: 'Point',
+                coordinates: [geometry.initiation_point[0], geometry.initiation_point[1]],
+              },
+              properties: { active: true },
+            },
+          ],
+        });
+      } else {
+        initiationSource.setData({ type: 'FeatureCollection', features: [] });
+      }
+    }
+
+    // 4. Historical Event Target Point
+    if (targetSource) {
+      if (showHazardHistoricalMarker) {
+        targetSource.setData({
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              geometry: {
+                type: 'Point',
+                coordinates: geometry.historical_event_point,
+              },
+              properties: {
+                title: 'Recorded Historical Event (GLC #15243)',
+              },
+            },
+          ],
+        });
+      } else {
+        targetSource.setData({ type: 'FeatureCollection', features: [] });
+      }
+    }
+  }, [mapReady, hazardProgressionData, hazardStepIndex, showHazardCorridor, showHazardHistoricalMarker]);
+
+  // ----- Effect 9: Camera Focus on Hazard Progression Corridor -----
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady || !hazardProgressionData) return;
+
+    const midIdx = Math.floor(hazardProgressionData.geometry.flow_path.length / 2);
+    const centerPoint = hazardProgressionData.geometry.flow_path[midIdx] || [88.528, 27.56];
+
+    map.flyTo({
+      center: [centerPoint[0], centerPoint[1]],
+      zoom: 12.3,
+      pitch: terrain3D ? 58 : 35,
+      bearing: 12,
+      duration: 1400,
+      padding: { top: 60, bottom: 250, left: 60, right: effectiveSidebarWidth + 60 },
+    });
+  }, [mapReady, hazardProgressionData, terrain3D, effectiveSidebarWidth]);
 
   return (
     <div className="relative w-full h-full">

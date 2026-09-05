@@ -11,9 +11,14 @@ import { HistoricalEvidencePanel } from './HistoricalEvidencePanel';
 interface HistoricalReplayModalProps {
   id: string;
   onClose: () => void;
+  onLaunchProgression?: (replayId: string) => void;
 }
 
-export const HistoricalReplayModal: React.FC<HistoricalReplayModalProps> = ({ id, onClose }) => {
+export const HistoricalReplayModal: React.FC<HistoricalReplayModalProps> = ({
+  id,
+  onClose,
+  onLaunchProgression,
+}) => {
   const [data, setData] = useState<HistoricalReplayResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -223,22 +228,36 @@ export const HistoricalReplayModal: React.FC<HistoricalReplayModalProps> = ({ id
                 </div>
               </div>
 
-              {/* Action Buttons: Evidence & Motion */}
-              <div className="pt-2 border-t border-slate-800 flex flex-wrap gap-2.5 justify-end">
-                <button
-                  onClick={() => setShowEvidence(true)}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition cursor-pointer"
-                >
-                  <span>📸</span>
-                  <span>Historical Evidence</span>
-                </button>
-                <button
-                  onClick={() => setShowMotion(true)}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-amber-950/60 hover:bg-amber-900 text-amber-300 border border-amber-800/80 transition cursor-pointer"
-                >
-                  <span>⚡</span>
-                  <span>Conceptual Motion</span>
-                </button>
+              {/* Action Buttons: Progression, Evidence & Motion */}
+              <div className="pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2.5">
+                {onLaunchProgression && (
+                  <button
+                    onClick={() => {
+                      onLaunchProgression(data.id);
+                      onClose();
+                    }}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-950/60 transition cursor-pointer"
+                  >
+                    <span>🌊</span>
+                    <span>Simulate Terrain Hazard Progression</span>
+                  </button>
+                )}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowEvidence(true)}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition cursor-pointer"
+                  >
+                    <span>📸</span>
+                    <span>Historical Evidence</span>
+                  </button>
+                  <button
+                    onClick={() => setShowMotion(true)}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-amber-950/60 hover:bg-amber-900 text-amber-300 border border-amber-800/80 transition cursor-pointer"
+                  >
+                    <span>⚡</span>
+                    <span>Conceptual Motion</span>
+                  </button>
+                </div>
               </div>
 
               {showEvidence && (
