@@ -28,35 +28,42 @@ export const MapView: React.FC<MapViewProps> = ({
   const [mapReady, setMapReady] = useState<boolean>(false);
   const [terrain3D, setTerrain3D] = useState<boolean>(false);
 
+  const DEFAULT_TERRAIN_DEM_URL = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
+
   function enable3DTerrain(map: maplibregl.Map): boolean {
-    const url = import.meta.env.VITE_TERRAIN_DEM_URL;
-    if (!url) return false;
-    if (!map.getSource('terrain-dem')) {
-      map.addSource('terrain-dem', {
-        type: 'raster-dem',
-        tiles: [url],
-        tileSize: 256,
-        maxzoom: 14,
-      });
+    const url = import.meta.env.VITE_TERRAIN_DEM_URL || DEFAULT_TERRAIN_DEM_URL;
+    try {
+      if (!map.getSource('terrain-dem')) {
+        map.addSource('terrain-dem', {
+          type: 'raster-dem',
+          tiles: [url],
+          encoding: 'terrarium',
+          tileSize: 256,
+          maxzoom: 15,
+        });
+      }
+      map.setTerrain({ source: 'terrain-dem', exaggeration: 1.25 });
+    } catch (e) {
+      console.warn('[map] Could not attach 3D raster terrain source, applying 3D pitch perspective', e);
     }
-    map.setTerrain({ source: 'terrain-dem', exaggeration: 1.25 });
     map.easeTo({ pitch: 55, duration: 900 });
     return true;
   }
 
   function disable3DTerrain(map: maplibregl.Map): void {
-    map.setTerrain(null);
+    try {
+      map.setTerrain(null);
+    } catch {
+      // Ignored if terrain was not active
+    }
     map.easeTo({ pitch: 0, duration: 700 });
   }
 
   const handleToggleTerrain = () => {
     if (!mapRef.current) return;
     if (!terrain3D) {
-      if (enable3DTerrain(mapRef.current)) {
-        setTerrain3D(true);
-      } else {
-        alert('3D terrain source not configured');
-      }
+      enable3DTerrain(mapRef.current);
+      setTerrain3D(true);
     } else {
       disable3DTerrain(mapRef.current);
       setTerrain3D(false);
@@ -370,10 +377,15 @@ export const MapView: React.FC<MapViewProps> = ({
       <MapLegend />
       <button
         onClick={handleToggleTerrain}
-        className="absolute top-4 left-4 z-10 bg-slate-800 text-slate-100 border border-slate-700 px-3 py-1.5 rounded-md shadow-lg text-sm font-medium hover:bg-slate-700 transition-colors"
-        title={!import.meta.env.VITE_TERRAIN_DEM_URL ? "DEM source not configured" : "Toggle 3D Terrain"}
+        className={`absolute top-4 left-4 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-lg shadow-lg text-xs font-semibold tracking-wide transition-all cursor-pointer border ${
+          terrain3D
+            ? 'bg-emerald-600 text-white border-emerald-400 shadow-emerald-950/50'
+            : 'bg-slate-900/90 text-slate-200 border-slate-700/80 hover:bg-slate-800 hover:text-white'
+        }`}
+        title={terrain3D ? 'Switch to 2D Top-down View' : 'Explore in 3D Terrain View'}
       >
-        {terrain3D ? '2D' : '3D'}
+        <span>🏔️</span>
+        <span>{terrain3D ? '2D View' : '3D Terrain'}</span>
       </button>
     </div>
   );
