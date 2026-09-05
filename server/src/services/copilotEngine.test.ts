@@ -86,3 +86,18 @@ test('degraded context (DB down) yields an honest message, not a crash', () => {
   assert.equal(r.intent, 'degraded');
   assert.match(r.answer, /could not load/i);
 });
+
+test('suggested chip: would TALWEG have flagged this event returns grounded replay answer', () => {
+  const r = deterministicAnswer('Would TALWEG have flagged this event?', ctx);
+  assert.equal(r.intent, 'flagged_replay');
+  assert.match(r.answer, /NASA GLC #15243/);
+  assert.match(r.answer, /HIGH/);
+});
+
+test('suggested chip: show me this terrain in 3D returns 3D guidance', () => {
+  const r = deterministicAnswer('Show me this terrain in 3D.', ctx);
+  assert.equal(r.intent, 'terrain_3d');
+  assert.match(r.answer, /3D Terrain/);
+  assert.match(r.answer, /55°/);
+});
+

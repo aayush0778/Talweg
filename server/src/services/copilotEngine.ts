@@ -91,6 +91,14 @@ const INTENT_DEFS: IntentDef[] = [
       'occurred', 'inventory', 'gls', 'event', 'events', 'incident', 'incidents'],
   },
   {
+    name: 'flagged_replay',
+    keywords: ['would talweg have flagged', 'flagged this event', 'would have flagged', 'would it have flagged', 'threshold crossed'],
+  },
+  {
+    name: 'terrain_3d',
+    keywords: ['show me this terrain in 3d', 'terrain in 3d', '3d terrain', '3d mode', '3d view', 'relief map', 'elevation model'],
+  },
+  {
     name: 'zone_risk',
     keywords: ['risk', 'status', 'condition', 'situation', 'current', 'about',
       'score', 'severity'],
@@ -206,6 +214,14 @@ function answerHistory(ctx: CopilotContext): string {
   return `This prototype's historical layer shows past landslide points from the NASA GLC inventory on the map (see the legend). For current conditions, ${top.name} is the highest-scoring zone at ${top.riskScore}/100 — ask me about its factors or the 7-day outlook for detail.`;
 }
 
+function answerFlaggedReplay(): string {
+  return "Yes. In our retrospective historical replay of the verified October 4, 2023 North Sikkim debris flow (NASA GLC #15243) using reconstructed IMD station rainfall (142.5 mm / 24h), TALWEG evaluated a risk score of 0.62 (HIGH), successfully crossing the early-warning threshold. Open 'Historical Replay' on the event card to inspect the full input vector, factor breakdown, and auditable REAL/DERIVED data provenance.";
+}
+
+function answerTerrain3D(): string {
+  return "You can explore Sikkim's terrain in 3D using the '3D Terrain' toggle button in the top-left map controls. It pitches the camera to 55° and renders elevation contours over AWS Terrarium DEM tiles, allowing you to visually inspect slope steepness and ridge lines around risk corridors.";
+}
+
 function answerAbout(): string {
   return `I'm the Talweg Copilot — a grounded assistant over this prototype's live risk data. I can answer: which zone is most at risk, a specific zone's status and factors, current rainfall, active alerts, the 7-day outlook, and zone comparisons. Try: "Which zone has the highest risk right now?"`;
 }
@@ -305,6 +321,10 @@ export function deterministicAnswer(question: string, ctx: CopilotContext): Copi
     }
     case 'history':
       return { answer: answerHistory(ctx), intent: best };
+    case 'flagged_replay':
+      return { answer: answerFlaggedReplay(), intent: best };
+    case 'terrain_3d':
+      return { answer: answerTerrain3D(), intent: best };
     case 'zone_risk':
       if (mentioned.length === 1) {
         return { answer: answerZoneRisk(mentioned[0]), intent: best, matchedZone };

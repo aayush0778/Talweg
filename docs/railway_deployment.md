@@ -86,17 +86,37 @@ This guide walks you through deploying the complete **Talweg** stack on [Railway
 2. Go to the service's **Settings** tab:
    - **Service Name**: rename to `talweg-client`.
    - **Root Directory**: set to `/client`.
-3. In the **Variables** tab, configure the build-time environment variable:
+3. In the **Variables** tab, configure the client environment variables:
    - `VITE_API_URL`: your server public URL from Step 4 (e.g. `https://talweg-server-production.up.railway.app`)
+   - `VITE_TERRAIN_DEM_URL`: *(optional)* raster-DEM elevation tile URL template. Defaults automatically to AWS Terrarium (`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png`).
 4. Under **Settings** $\rightarrow$ **Networking**, click **Generate Domain** (e.g. `https://talweg-client-production.up.railway.app`).
 
 ---
 
 ## Verifying the Deployment
 
+### Automated Smoke Test (Handbook P1 Verification)
+Run the automated deployment verification script against your deployed URLs:
+```bash
+python scripts/deploy_smoke_test.py \
+  --server https://talweg-server-production.up.railway.app \
+  --client https://talweg-client-production.up.railway.app
+```
+This tests 8 critical capabilities:
+1. **Client App Bundle**: HTTP 200 with complete HTML5 entrypoint.
+2. **API Health Status**: PostgreSQL and PostGIS connectivity verified.
+3. **Regions & Spatial Bounds**: GeoJSON polygons and Sikkim bounding box.
+4. **Risk Zones Inventory**: All monitored corridors loaded.
+5. **Historical Replays List**: Seeded replays list reachable.
+6. **Verified Real Event Replay**: Reconstructs the October 4, 2023 North Sikkim debris flow (NASA GLC #15243) with REAL IMD rainfall, DERIVED slope, and returns `WOULD HAVE FLAGGED: YES`.
+7. **Truthful Validation Summary**: Confirms `status: 'methodology_only'` without fabricating premature metrics.
+8. **3D Terrain Raster DEM Tile**: Verifies raster elevation tile availability.
+
+### Manual Verification Checklist
 1. Visit your client URL in the browser (`https://talweg-client-production.up.railway.app`).
 2. Verify:
-   - WebGL Map loads with Sikkim landslide risk zones and color-coded susceptibility.
-   - Click any corridor (e.g. **Gangtok Corridor**) to view live sensor telemetry and factor breakdown.
-   - Resize the sidebar by dragging the handle on the left edge.
-   - Ask questions in the **Talweg Copilot** panel to test live grounded AI/deterministic responses.
+   - **Top View**: State-wide nadir overview (`pitch: 0`) showing all 6 Sikkim risk zones.
+   - **Zone Inspection**: Click **North Sikkim (Mangan)** to view live telemetry and factor breakdown without losing Top View framing.
+   - **3D Terrain**: Click **3D Terrain** in top-left controls to tilt camera to $55^\circ$ with elevation relief.
+   - **Historical Replay**: Click **Replay** on the October 4, 2023 event card. Verify green **REAL** provenance badges, **WOULD HAVE FLAGGED: YES**, and the escalation timeline.
+   - **Talweg Copilot**: Click suggested prompt chips (*"Why is this zone high risk?"*, *"Would TALWEG have flagged this event?"*, *"Show me this terrain in 3D"*) to test grounded answers.

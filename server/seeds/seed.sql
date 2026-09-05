@@ -94,6 +94,7 @@ INSERT INTO risk_zones (id, region_id, name, description, base_slope, geometry) 
 -- Coordinates fall within or near the corresponding risk zone polygons.
 
 INSERT INTO landslide_events (id, date, latitude, longitude, geometry, trigger, category, fatalities, description, source) VALUES
+  ('glc-15243', '2023-10-04', 27.52, 88.54, ST_SetSRID(ST_MakePoint(88.54, 27.52), 4326), 'rain', 'debris_flow', 5, 'Chungthang-Mangan corridor debris flow following extreme cloudburst (NASA GLC #15243)', 'nasa_glc'),
   ('evt-001', '2023-10-04', 27.33, 88.61, ST_SetSRID(ST_MakePoint(88.61, 27.33), 4326), 'rain', 'landslide', 2, 'Monsoon-triggered debris flow along NH10 near Gangtok', 'synthetic_seed'),
   ('evt-002', '2022-08-15', 27.35, 88.62, ST_SetSRID(ST_MakePoint(88.62, 27.35), 4326), 'rain', 'landslide', 0, 'Road-blocking slide near 7th Mile, Gangtok', 'synthetic_seed'),
   ('evt-003', '2021-07-22', 27.32, 88.60, ST_SetSRID(ST_MakePoint(88.60, 27.32), 4326), 'rain', 'debris_flow', 1, 'Debris flow in Chandmari area during heavy rain', 'synthetic_seed'),

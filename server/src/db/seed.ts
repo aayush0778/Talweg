@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { pool } from './index';
 import { BACKTEST_EVENTS } from '../services/backtestScenarios';
+import { REAL_REPLAY_RECORD } from '../services/historicalReplay';
 
 /**
  * Seed runner — loads server/seeds/seed.sql into the database.
@@ -44,6 +45,34 @@ async function seed(): Promise<void> {
     if (tableExists.rows[0].exists) {
       await client.query('DELETE FROM historical_event_replays');
       
+      // 1. Seed verified real historical replay record (Phase P0 proof)
+      await client.query(
+        `INSERT INTO historical_event_replays (
+          id, event_id, event_date, latitude, longitude, zone_id, source, 
+          rainfall_24h, rainfall_3d, rainfall_7d, soil_moisture, slope, 
+          historical_density, data_quality, data_notes, actual_event
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+        [
+          REAL_REPLAY_RECORD.id,
+          REAL_REPLAY_RECORD.event_id,
+          REAL_REPLAY_RECORD.event_date,
+          REAL_REPLAY_RECORD.latitude,
+          REAL_REPLAY_RECORD.longitude,
+          REAL_REPLAY_RECORD.zone_id,
+          REAL_REPLAY_RECORD.source,
+          REAL_REPLAY_RECORD.rainfall_24h,
+          REAL_REPLAY_RECORD.rainfall_3d,
+          REAL_REPLAY_RECORD.rainfall_7d,
+          REAL_REPLAY_RECORD.soil_moisture,
+          REAL_REPLAY_RECORD.slope,
+          REAL_REPLAY_RECORD.historical_density,
+          REAL_REPLAY_RECORD.data_quality,
+          REAL_REPLAY_RECORD.data_notes,
+          REAL_REPLAY_RECORD.actual_event,
+        ]
+      );
+
+      // 2. Seed synthetic backtest events for methodology baseline
       for (const evt of BACKTEST_EVENTS) {
         // Try to find lat/lng from events table if seeded
         let lat = 0;
