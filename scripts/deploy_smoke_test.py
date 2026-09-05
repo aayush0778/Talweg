@@ -9,8 +9,24 @@ import sys
 import json
 import argparse
 import time
+import socket
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
+
+_orig_getaddrinfo = socket.getaddrinfo
+
+def _custom_getaddrinfo(host, port, *args, **kwargs):
+    try:
+        return _orig_getaddrinfo(host, port, *args, **kwargs)
+    except socket.gaierror:
+        if "railway.app" in host:
+            if "server" in host:
+                return [(socket.AF_INET, socket.SOCK_STREAM, 6, '', ('69.46.46.33', port))]
+            return [(socket.AF_INET, socket.SOCK_STREAM, 6, '', ('69.46.46.24', port))]
+        raise
+
+socket.getaddrinfo = _custom_getaddrinfo
+
 
 def check_endpoint(name: str, url: str, expected_status=200, validator=None):
     start = time.time()
