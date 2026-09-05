@@ -4,6 +4,51 @@
 
 SIH26001 — Prototype decision-support system for landslide risk assessment in Sikkim.
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Railway%20Cloud-00C7B7?style=for-the-badge&logo=railway)](https://talweg-client-production.up.railway.app)
+[![API Health](https://img.shields.io/badge/API-Live%20Healthy-emerald?style=for-the-badge)](https://talweg-server-production.up.railway.app/api/health)
+[![SIH](https://img.shields.io/badge/Smart%20India%20Hackathon-2026-blue?style=for-the-badge)](https://www.sih.gov.in/)
+
+---
+
+### 🌐 Live Production Deployment
+
+- 🖥️ **Interactive Web Client:** [https://talweg-client-production.up.railway.app](https://talweg-client-production.up.railway.app)
+- 🔌 **API Server Health & Endpoints:** [https://talweg-server-production.up.railway.app/api/health](https://talweg-server-production.up.railway.app/api/health)
+
+---
+
+## 📸 Interface Showcase
+
+### 1. 3D Relief Terrain Exploration (Himalayan Micro-Corridors)
+![TALWEG 3D Relief Terrain](docs/screenshots/01_3d_terrain_gangtok.jpg)
+*High-resolution 3D relief terrain (55° pitch) rendered on MapLibre GL with AWS Terrarium DEM tiles, capturing steep Himalayan slopes, snowcapped ridgelines, and zone risk telemetry for the Gangtok Corridor.*
+
+---
+
+### 2. Predictive Runout & Hazard Progression Replay
+![TALWEG Predictive Runout Simulation](docs/screenshots/02_predictive_runout_simulation.png)
+*Geospatially-grounded hazard progression simulation visualizing antecedent saturation, threshold crossing, terrain-following descent corridor, and projected debris deposition fan with full T-72h timeline controls and Talweg Copilot.*
+
+---
+
+### 3. Statewide Spatial Risk Intelligence (Sikkim Overview)
+![TALWEG Statewide Risk Intelligence](docs/screenshots/03_state_overview_monitoring.jpg)
+*Nadir top-view monitoring across all 6 administrative corridors of Sikkim with clustered historical landslide records and server-authoritative active alert dispatch.*
+
+---
+
+### 4. Interactive What-If Monsoon Scenario Simulator
+![TALWEG What-If Scenario Simulator](docs/screenshots/04_scenario_simulator_3d.png)
+*Parametric stress-testing of slopes with real-time sliders for 24h rainfall, 3-day cumulative rainfall, and soil saturation to model extreme precipitation triggers.*
+
+---
+
+### 5. Zone Telemetry & Multi-Factor Explainability
+![TALWEG Zone Telemetry & Explainability](docs/screenshots/05_zone_telemetry_explainability.jpg)
+*Transparent factor attribution breakdown (Rainfall, Soil Saturation, DEM Slope, Historical Density), 7-day risk trajectories, and dual-engine validation (Deterministic baseline vs. Random Forest ML surrogate).*
+
+---
+
 > **⚠️ Prototype disclaimer:** This is a decision-support prototype built for SIH 2026. It is NOT an operational emergency warning system and must NOT be used as one.
 
 ## Tech Stack
