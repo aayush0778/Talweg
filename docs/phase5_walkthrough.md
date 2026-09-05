@@ -15,7 +15,7 @@ Phase 5 introduces the internal machine learning surrogate microservice and serv
   - In `ml` mode, if the microservice is unreachable, errors, or times out, the backend seamlessly logs a warning and falls back to the in-process deterministic risk engine with **zero downtime**.
   - `Promise.all` parallelization in `server/src/routes/riskZones.ts` ensures all zones evaluate concurrently within a single timeout window.
 - **Client Engine Visibility (`client/src/components/ZoneDetail.tsx`):**
-  - 2-state badge displaying `ML Surrogate (RF)` (emerald) or `Deterministic Heuristic` (slate).
+  - 2-state badge displaying `ML Surrogate · Extra Trees` (emerald) or `Deterministic Heuristic` (slate).
 
 ---
 

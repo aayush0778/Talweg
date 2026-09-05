@@ -45,7 +45,7 @@ SIH26001 — Prototype decision-support system for landslide risk assessment in 
 
 ### 5. Zone Telemetry & Multi-Factor Explainability
 ![TALWEG Zone Telemetry & Explainability](docs/screenshots/05_zone_telemetry_explainability.jpg)
-*Transparent factor attribution breakdown (Rainfall, Soil Saturation, DEM Slope, Historical Density), 7-day risk trajectories, and dual-engine validation (Deterministic baseline vs. Random Forest ML surrogate).*
+*Transparent factor attribution breakdown (Rainfall, Soil Saturation, DEM Slope, Historical Density), 7-day risk trajectories, and dual-engine validation (Deterministic baseline vs. Extra Trees ML surrogate).*
 
 ---
 
@@ -58,7 +58,7 @@ SIH26001 — Prototype decision-support system for landslide risk assessment in 
 | Frontend | React 19, Vite 6, TypeScript, Tailwind CSS v4, MapLibre GL JS, Recharts |
 | Backend | Node.js 20, Express, TypeScript, Zod, pg |
 | Database | PostgreSQL 16 + PostGIS 3.4 |
-| ML (Sidecar) | Python 3.11/3.14, FastAPI, Scikit-Learn (Random Forest surrogate model) |
+| ML (Sidecar) | Python 3.11/3.14, FastAPI, Scikit-Learn (ExtraTreesRegressor surrogate model) |
 
 ## Architecture
 

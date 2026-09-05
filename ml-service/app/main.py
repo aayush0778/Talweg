@@ -1,6 +1,6 @@
 """FastAPI Inference Service for Talweg ML Surrogate
 
-Hosts the Scikit-Learn RandomForestRegressor surrogate model.
+Hosts the Scikit-Learn ExtraTreesRegressor surrogate model.
 Serves internal risk calculation requests from Node.js with strict loopback-only binding.
 """
 
@@ -103,7 +103,7 @@ def predict(req: PredictRequest):
     risk_level = classify_risk(risk_score)
 
     # 3. Compute contributing factors
-    # Note: score is surrogate-predicted by Random Forest; factor decomposition is formula-derived
+    # Note: score is surrogate-predicted by Extra Trees; factor decomposition is formula-derived
     factors_raw = [
         ("rainfall_24h", req.rainfall_24h, r24_clamped / NORMALIZATION_MAX["rainfall_24h"]),
         ("rainfall_3d", req.rainfall_3d, r3d_clamped / NORMALIZATION_MAX["rainfall_3d"]),

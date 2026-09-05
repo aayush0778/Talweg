@@ -97,7 +97,7 @@ export function generateReportHTML(
     <div class="meta">
       <div><strong>Report Generated:</strong> ${now}</div>
       <div><strong>Zone ID:</strong> ${zone.id}</div>
-      <div><strong>Engine:</strong> ${engine === 'ml' ? 'ML Surrogate (ExtraTrees)' : 'Deterministic Heuristic'}</div>
+      <div><strong>Engine:</strong> ${engine === 'ml' ? 'ML Surrogate · Extra Trees' : 'Deterministic Heuristic'}</div>
       <div><strong>Data Source:</strong> ${prediction?.data_source ?? zone.data_source ?? 'synthetic_seed'}</div>
     </div>
   </div>

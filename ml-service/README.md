@@ -2,11 +2,11 @@
 
 > **Status: IMPLEMENTED** — Phase 5 surrogate-model architecture demonstration.
 
-This microservice hosts a Scikit-Learn `RandomForestRegressor` surrogate model for landslide risk prediction.
+This microservice hosts a Scikit-Learn `ExtraTreesRegressor` surrogate model for landslide risk prediction.
 
 ## Scientific Honesty & Architecture Role
 
-- **Surrogate Model Role:** As documented in `docs/data_sources.md`, this prototype does not fabricate claims of real sensor ground truth. The Random Forest surrogate model is trained systematically across the 5-factor normalized parameter space to demonstrate the production model-serving pipeline, inference latency, and failover mechanics.
+- **Surrogate Model Role:** As documented in `docs/data_sources.md`, this prototype does not fabricate claims of real sensor ground truth. The Extra Trees surrogate model is trained systematically across the 5-factor normalized parameter space to demonstrate the production model-serving pipeline, inference latency, and failover mechanics.
 - **Internal Only:** The browser **never** communicates with this service directly. All calls are routed from Node/Express over internal loopback networking (`127.0.0.1:8000`).
 - **Failover Seam:** If this microservice is unreachable or shut down, Node/Express automatically and silently falls back to the in-process deterministic risk engine with zero downtime.
 
