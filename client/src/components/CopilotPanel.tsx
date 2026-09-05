@@ -33,10 +33,10 @@ const GREETING =
   "Talweg Copilot — grounded in this prototype's live risk data. Ask about zone risk, rainfall, alerts, the 7-day outlook, or compare zones.";
 
 const SUGGESTIONS = [
-  'Which zone has the highest risk right now?',
-  'Are there any active alerts?',
-  'Explain the risk factors for Gangtok Corridor',
-  'What is the 7-day outlook?',
+  'Why is this zone high risk?',
+  'Show the most relevant historical event.',
+  'Would TALWEG have flagged this event?',
+  'Show me this terrain in 3D.',
 ];
 
 const OFFLINE_TEXT =

@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import type { HealthResponse, ModelValidationResponse } from '../types/api';
+import type { HealthResponse, ModelValidationResponse, DataProvenance } from '../types/api';
 import { fetchModelValidation } from '../lib/apiClient';
+import { ProvenanceBadge } from './ProvenanceBadge';
 
 interface DataSourcePanelProps {
   health: HealthResponse | null;
@@ -8,7 +9,7 @@ interface DataSourcePanelProps {
 
 interface DataSource {
   name: string;
-  type: 'REAL' | 'DERIVED' | 'SYNTHETIC';
+  type: DataProvenance;
   description: string;
   records: string;
   status: 'connected' | 'loaded' | 'demo';
@@ -59,11 +60,6 @@ const DATA_SOURCES: DataSource[] = [
   },
 ];
 
-const typeColors: Record<string, { bg: string; text: string }> = {
-  REAL: { bg: 'bg-emerald-950/60', text: 'text-emerald-400' },
-  DERIVED: { bg: 'bg-sky-950/60', text: 'text-sky-400' },
-  SYNTHETIC: { bg: 'bg-amber-950/60', text: 'text-amber-400' },
-};
 
 const statusIndicator: Record<string, { color: string; label: string }> = {
   connected: { color: 'bg-emerald-400', label: 'Live' },
@@ -117,7 +113,6 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ health }) => {
 
           <div className="max-h-80 overflow-y-auto">
             {DATA_SOURCES.map((src) => {
-              const typeStyle = typeColors[src.type];
               const status = statusIndicator[src.status];
 
               return (
@@ -128,11 +123,7 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ health }) => {
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[11px] font-semibold text-slate-200">{src.name}</span>
                     <div className="flex items-center gap-2">
-                      <span
-                        className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${typeStyle.bg} ${typeStyle.text} border border-slate-800/40`}
-                      >
-                        {src.type}
-                      </span>
+                      <ProvenanceBadge type={src.type} note={src.type === 'SYNTHETIC' ? 'Demo seed data' : undefined} />
                       <span className="flex items-center gap-1">
                         <span className={`w-1.5 h-1.5 rounded-full ${status.color}`} />
                         <span className="text-[9px] text-slate-400">{status.label}</span>

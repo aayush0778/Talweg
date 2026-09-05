@@ -12,6 +12,9 @@ import {
   CopilotResponse,
   ApiErrorResponse,
   ModelValidationResponse,
+  HistoricalReplayListItem,
+  HistoricalReplayResponse,
+  ValidationSummaryResponse,
 } from '../types/api';
 
 export class ApiClientError extends Error {
@@ -165,4 +168,20 @@ export function simulateRisk(req: SimulateRiskRequest): Promise<RiskPredictionRe
 
 export function askCopilot(req: CopilotAskRequest): Promise<CopilotResponse> {
   return apiPost<CopilotResponse>('/api/copilot/ask', req);
+}
+
+export function fetchHistoricalReplays(): Promise<HistoricalReplayListItem[]> {
+  return apiGet<HistoricalReplayListItem[]>('/api/historical-replays');
+}
+
+export function fetchHistoricalReplayById(id: string): Promise<HistoricalReplayListItem> {
+  return apiGet<HistoricalReplayListItem>(`/api/historical-replays/${encodeURIComponent(id)}`);
+}
+
+export function replayHistoricalEvent(id: string): Promise<HistoricalReplayResponse> {
+  return apiGet<HistoricalReplayResponse>(`/api/historical-replays/${encodeURIComponent(id)}/replay`);
+}
+
+export function fetchValidationSummary(): Promise<ValidationSummaryResponse> {
+  return apiGet<ValidationSummaryResponse>('/api/model-validation/summary');
 }

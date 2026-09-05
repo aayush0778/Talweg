@@ -10,6 +10,7 @@ import riskRouter from './routes/risk';
 import { alertsRouter } from './routes/alerts';
 import { copilotRouter } from './routes/copilot';
 import modelValidationRouter from './routes/modelValidation';
+import historicalReplaysRouter from './routes/historicalReplays';
 
 /**
  * Express application factory.
@@ -33,6 +34,7 @@ export function createApp(): Express {
   app.use('/api', alertsRouter);
   app.use('/api', copilotRouter);
   app.use('/api', modelValidationRouter);
+  app.use('/api', historicalReplaysRouter);
 
   // --- Centralized Error Handling (must be registered last) ---
   app.use(errorHandler);

@@ -26,6 +26,42 @@ export const MapView: React.FC<MapViewProps> = ({
   const popupRef = useRef<maplibregl.Popup | null>(null);
   const didFitRef = useRef<boolean>(false);
   const [mapReady, setMapReady] = useState<boolean>(false);
+  const [terrain3D, setTerrain3D] = useState<boolean>(false);
+
+  function enable3DTerrain(map: maplibregl.Map): boolean {
+    const url = import.meta.env.VITE_TERRAIN_DEM_URL;
+    if (!url) return false;
+    if (!map.getSource('terrain-dem')) {
+      map.addSource('terrain-dem', {
+        type: 'raster-dem',
+        tiles: [url],
+        tileSize: 256,
+        maxzoom: 14,
+      });
+    }
+    map.setTerrain({ source: 'terrain-dem', exaggeration: 1.25 });
+    map.easeTo({ pitch: 55, duration: 900 });
+    return true;
+  }
+
+  function disable3DTerrain(map: maplibregl.Map): void {
+    map.setTerrain(null);
+    map.easeTo({ pitch: 0, duration: 700 });
+  }
+
+  const handleToggleTerrain = () => {
+    if (!mapRef.current) return;
+    if (!terrain3D) {
+      if (enable3DTerrain(mapRef.current)) {
+        setTerrain3D(true);
+      } else {
+        alert('3D terrain source not configured');
+      }
+    } else {
+      disable3DTerrain(mapRef.current);
+      setTerrain3D(false);
+    }
+  };
 
   const closePopup = () => {
     if (popupRef.current) {
@@ -241,14 +277,25 @@ export const MapView: React.FC<MapViewProps> = ({
 
     const target = zones.find((z) => z.id === selectedZoneId);
     if (target?.centroid) {
-      map.flyTo({
-        center: [target.centroid.longitude, target.centroid.latitude],
-        zoom: 11.5,
-        duration: 1200,
-        padding: { top: 40, bottom: 40, left: 40, right: PANEL_WIDTH + 40 },
-      });
+      if (terrain3D) {
+        map.flyTo({
+          center: [target.centroid.longitude, target.centroid.latitude],
+          zoom: 12.2,
+          pitch: 55,
+          bearing: 15,
+          duration: 1200,
+          padding: { top: 40, bottom: 40, left: 40, right: PANEL_WIDTH + 40 },
+        });
+      } else {
+        map.flyTo({
+          center: [target.centroid.longitude, target.centroid.latitude],
+          zoom: 11.5,
+          duration: 1200,
+          padding: { top: 40, bottom: 40, left: 40, right: PANEL_WIDTH + 40 },
+        });
+      }
     }
-  }, [mapReady, selectedZoneId, zones]);
+  }, [mapReady, selectedZoneId, zones, terrain3D]);
 
   // ----- Effect 7: Map Interactions & Event Popups -----
   useEffect(() => {
@@ -321,6 +368,13 @@ export const MapView: React.FC<MapViewProps> = ({
     <div className="relative w-full h-full">
       <div ref={containerRef} className="w-full h-full" />
       <MapLegend />
+      <button
+        onClick={handleToggleTerrain}
+        className="absolute top-4 left-4 z-10 bg-slate-800 text-slate-100 border border-slate-700 px-3 py-1.5 rounded-md shadow-lg text-sm font-medium hover:bg-slate-700 transition-colors"
+        title={!import.meta.env.VITE_TERRAIN_DEM_URL ? "DEM source not configured" : "Toggle 3D Terrain"}
+      >
+        {terrain3D ? '2D' : '3D'}
+      </button>
     </div>
   );
 };

@@ -163,3 +163,85 @@ export interface ApiErrorResponse {
     details?: unknown;
   };
 }
+
+// ----- Data Provenance (Phase P0) -----
+
+export type DataProvenance = 'REAL' | 'DERIVED' | 'SYNTHETIC' | 'SIMULATED';
+
+export interface ProvenanceInfo {
+  type: DataProvenance;
+  source?: string;
+  sourceUrl?: string;
+  note?: string;
+}
+
+export interface ProvenanceWrapped<T> {
+  value: T;
+  provenance: ProvenanceInfo;
+}
+
+export interface HistoricalReplayEvent {
+  date: string;
+  latitude: number;
+  longitude: number;
+  category: string;
+  description: string;
+  source: ProvenanceInfo;
+}
+
+export interface HistoricalReplayInputs {
+  rainfall_24h: ProvenanceWrapped<number | null>;
+  rainfall_3d: ProvenanceWrapped<number | null>;
+  rainfall_7d: ProvenanceWrapped<number | null>;
+  soil_moisture: ProvenanceWrapped<number | null>;
+  slope: ProvenanceWrapped<number | null>;
+  historical_density: ProvenanceWrapped<number | null>;
+}
+
+export interface HistoricalReplayTalweg {
+  risk_score: number;
+  risk_level: RiskLevel;
+  engine: 'deterministic' | 'ml';
+  flagged: boolean;
+  contributing_factors: Array<{ factor: string; contribution: number }>;
+}
+
+export interface HistoricalReplayValidation {
+  status: 'real_replay' | 'methodology_only' | 'synthetic_demo';
+  caveat: string;
+}
+
+export interface HistoricalReplayResponse {
+  id: string;
+  event: HistoricalReplayEvent;
+  inputs: HistoricalReplayInputs;
+  talweg: HistoricalReplayTalweg;
+  validation: HistoricalReplayValidation;
+}
+
+export interface HistoricalReplayListItem {
+  id: string;
+  event_id: string | null;
+  event_date: string;
+  latitude: number;
+  longitude: number;
+  zone_id: string | null;
+  source: string;
+  data_quality: string;
+  actual_event: boolean;
+  data_notes: string | null;
+}
+
+export interface ValidationSummaryResponse {
+  status: 'validated' | 'methodology_only';
+  real_replay_count: number;
+  synthetic_replay_count: number;
+  methodology_count: number;
+  metrics: {
+    precision: number;
+    recall: number;
+    f1: number;
+    confusion_matrix: { tp: number; fp: number; fn: number; tn: number };
+  } | null;
+  reason?: string;
+}

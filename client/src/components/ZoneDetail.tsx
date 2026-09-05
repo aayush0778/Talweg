@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   RiskZone,
   EnvironmentObservation,
@@ -16,6 +16,7 @@ import { AlertHistory } from './AlertHistory';
 import { CopilotPanel } from './CopilotPanel';
 import { RiskBadge } from './RiskBadge';
 import { StatusMessage } from './StatusMessage';
+import { HistoricalReplayModal } from './HistoricalReplayModal';
 import { getRiskColor } from '../lib/riskColors';
 import { scoreToPercent, formatObsTimestamp, formatEventDate } from '../lib/format';
 import { openReportWindow } from '../lib/reportGenerator';
@@ -69,6 +70,8 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
   onBack,
   onRetryEnv,
 }) => {
+  const [replayEventId, setReplayEventId] = useState<string | null>(null);
+
   const currentRiskScore = assessment?.risk_score ?? zone.risk_score;
   const currentRiskLevel = assessment?.risk_level ?? zone.risk_level;
   const pct = scoreToPercent(currentRiskScore);
@@ -353,9 +356,17 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
                   className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800 text-xs space-y-1"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-[11px] text-slate-400">
-                      {formatEventDate(evt.date)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-[11px] text-slate-400">
+                        {formatEventDate(evt.date)}
+                      </span>
+                      <button
+                        onClick={() => setReplayEventId(`replay-${evt.id}`)}
+                        className="px-2 py-0.5 text-[10px] font-semibold bg-indigo-950/80 text-indigo-300 border border-indigo-800/60 rounded hover:bg-indigo-900 transition-colors"
+                      >
+                        Replay
+                      </button>
+                    </div>
                     <div className="flex gap-1">
                       {evt.trigger && (
                         <span className="px-1.5 py-0.2 text-[10px] bg-blue-950 text-blue-300 rounded border border-blue-900/60">
@@ -393,6 +404,13 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
         {/* P0-B.3: Constrained AI Copilot Section */}
         <CopilotPanel zoneId={zone.id} />
       </div>
+      
+      {replayEventId && (
+        <HistoricalReplayModal
+          id={replayEventId}
+          onClose={() => setReplayEventId(null)}
+        />
+      )}
     </div>
   );
 };

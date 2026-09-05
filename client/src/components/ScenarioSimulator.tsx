@@ -1,6 +1,7 @@
 import React from 'react';
 import { EnvironmentObservation } from '../types/api';
 import { ScenarioValues } from '../lib/scenario';
+import { ProvenanceBadge } from './ProvenanceBadge';
 
 interface ScenarioSimulatorProps {
   values: ScenarioValues | null;
@@ -27,8 +28,9 @@ export const ScenarioSimulator: React.FC<ScenarioSimulatorProps> = ({
     return (
       <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs text-slate-400 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="font-bold uppercase tracking-wider text-slate-300">
-            Rainfall Scenario Simulator
+          <span className="font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            What-if Scenario
+            <ProvenanceBadge type="SIMULATED" note="What-if scenario analysis" />
           </span>
         </div>
         <p className="text-slate-500 italic">
@@ -63,8 +65,9 @@ export const ScenarioSimulator: React.FC<ScenarioSimulatorProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-              Rainfall Scenario Simulator
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+              What-if Scenario
+              <ProvenanceBadge type="SIMULATED" note="What-if scenario analysis" />
             </h3>
             {simLoading && (
               <span className="flex items-center gap-1 text-[10px] text-amber-400 animate-pulse font-medium">
@@ -74,7 +77,7 @@ export const ScenarioSimulator: React.FC<ScenarioSimulatorProps> = ({
             )}
           </div>
           <p className="text-[11px] text-slate-400 mt-0.5">
-            Simulate monsoon conditions. Score updates live.
+            Scenario analysis — not a recorded forecast. Simulate monsoon conditions. Score updates live.
           </p>
         </div>
 

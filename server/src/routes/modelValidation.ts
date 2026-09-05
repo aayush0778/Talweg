@@ -1,5 +1,6 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { runModelValidationBacktest } from '../services/modelValidation';
+import { buildValidationSummary } from '../services/historicalReplay';
 
 /**
  * GET /api/model-validation
@@ -14,6 +15,16 @@ const router = Router();
 router.get('/model-validation', (_req: Request, res: Response) => {
   const summary = runModelValidationBacktest();
   res.json(summary);
+});
+
+// New: validation summary with real vs synthetic counts
+router.get('/model-validation/summary', async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const summary = await buildValidationSummary();
+    res.json(summary);
+  } catch (err) {
+    next(err);
+  }
 });
 
 export default router;
