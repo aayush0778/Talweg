@@ -74,12 +74,14 @@ async function seed(): Promise<void> {
 
       // 2. Seed synthetic backtest events for methodology baseline
       for (const evt of BACKTEST_EVENTS) {
-        // Try to find lat/lng from events table if seeded
+        // Try to find lat/lng and matching id from events table if seeded
         let lat = 0;
         let lng = 0;
+        let matchedEventId: string | null = null;
         try {
-          const eventRecord = await client.query('SELECT ST_Y(geometry::geometry) as lat, ST_X(geometry::geometry) as lng FROM landslide_events WHERE id = $1', [evt.id]);
+          const eventRecord = await client.query('SELECT id, ST_Y(geometry::geometry) as lat, ST_X(geometry::geometry) as lng FROM landslide_events WHERE id = $1', [evt.id]);
           if (eventRecord.rows.length > 0) {
+            matchedEventId = eventRecord.rows[0].id;
             lat = eventRecord.rows[0].lat;
             lng = eventRecord.rows[0].lng;
           }
@@ -92,7 +94,7 @@ async function seed(): Promise<void> {
             historical_density, data_quality, data_notes, actual_event
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
           [
-            `replay-${evt.id}`, evt.id, evt.date, lat, lng, evt.zoneId, 'synthetic_seed',
+            `replay-${evt.id}`, matchedEventId, evt.date, lat, lng, evt.zoneId, 'synthetic_seed',
             evt.input.rainfall_24h, evt.input.rainfall_3d, null, evt.input.soil_moisture,
             evt.input.slope, evt.input.historical_density, 'synthetic_demo', evt.description, true
           ]
