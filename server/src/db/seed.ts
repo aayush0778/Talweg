@@ -27,6 +27,14 @@ async function seed(): Promise<void> {
 
     // Clear existing seed data in dependency order
     console.log('[seed] Clearing existing data...');
+    const replayExists = await client.query(`SELECT to_regclass('historical_event_replays') as exists`);
+    if (replayExists.rows[0].exists) {
+      await client.query('DELETE FROM historical_event_replays');
+    }
+    const evidenceExists = await client.query(`SELECT to_regclass('historical_event_evidence') as exists`);
+    if (evidenceExists.rows[0].exists) {
+      await client.query('DELETE FROM historical_event_evidence');
+    }
     await client.query('DELETE FROM alerts');
     await client.query('DELETE FROM environmental_observations');
     await client.query('DELETE FROM landslide_events');
@@ -36,6 +44,14 @@ async function seed(): Promise<void> {
     // Run the seed SQL
     console.log('[seed] Inserting seed data...');
     await client.query(sql);
+
+    // Also load real NASA GLC Sikkim events if available
+    const glcFile = path.join(__dirname, '../../seeds/real_nasa_glc_sikkim.sql');
+    if (fs.existsSync(glcFile)) {
+      console.log('[seed] Inserting real NASA GLC Sikkim events...');
+      const glcSql = fs.readFileSync(glcFile, 'utf-8');
+      await client.query(glcSql);
+    }
 
     // Seed historical_event_replays
     console.log('[seed] Seeding historical_event_replays...');

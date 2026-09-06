@@ -37,22 +37,22 @@ describe('POST /api/risk/predict & /api/risk/simulate (Integration Tests)', () =
     const data = (await res.json()) as RiskPredictionResponse;
     assert.equal(data.zone_id, 'gangtok');
     assert.equal(data.zone_name, 'Gangtok Corridor');
-    assert.equal(data.risk_score, 0.457);
+    assert.equal(data.risk_score, 0.53);
     assert.equal(data.risk_level, 'MODERATE');
     assert.equal(data.engine, 'deterministic');
-    assert.equal(data.data_source, 'synthetic_seed');
+    assert.equal(data.data_source, 'chirps_imd');
     assert.ok(typeof data.timestamp === 'string');
 
     // Check inputs used
-    assert.equal(data.inputs_used.rainfall_24h, 85);
-    assert.equal(data.inputs_used.rainfall_3d, 180);
-    assert.equal(data.inputs_used.soil_moisture, 0.78);
+    assert.equal(data.inputs_used.rainfall_24h, 91.4);
+    assert.equal(data.inputs_used.rainfall_3d, 137.2);
+    assert.equal(data.inputs_used.soil_moisture, 0.82);
     assert.equal(data.inputs_used.slope, 19.6);
-    assert.equal(data.inputs_used.historical_density, 5);
+    assert.equal(data.inputs_used.historical_density, 13);
 
     // Factors sorted by contribution descending
     assert.equal(data.contributing_factors.length, 5);
-    assert.equal(data.contributing_factors[0].factor, 'rainfall_24h');
+    assert.equal(data.contributing_factors[0].factor, 'historical_density');
   });
 
   it('simulates what-if scenario with rainfall override and flips risk level to HIGH', async () => {
@@ -61,7 +61,7 @@ describe('POST /api/risk/predict & /api/risk/simulate (Integration Tests)', () =
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         zone_id: 'gangtok',
-        rainfall_24h: 170, // Increase 24h rainfall from 85mm to 170mm to reach HIGH with new slope
+        rainfall_24h: 170, // Increase 24h rainfall from 91.4mm to 170mm to reach HIGH with new slope
       }),
     });
 
@@ -69,10 +69,10 @@ describe('POST /api/risk/predict & /api/risk/simulate (Integration Tests)', () =
 
     const data = (await res.json()) as RiskPredictionResponse;
     assert.equal(data.zone_id, 'gangtok');
-    assert.equal(data.risk_score, 0.584);
+    assert.equal(data.risk_score, 0.648);
     assert.equal(data.risk_level, 'HIGH');
     assert.equal(data.inputs_used.rainfall_24h, 170);
-    assert.equal(data.inputs_used.rainfall_3d, 180); // Unmodified
+    assert.equal(data.inputs_used.rainfall_3d, 137.2); // Unmodified
   });
 
   it('returns 404 ZONE_NOT_FOUND when predicting for an unknown zone', async () => {

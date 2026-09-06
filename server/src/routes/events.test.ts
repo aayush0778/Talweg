@@ -24,29 +24,31 @@ describe('GET /api/events (Integration Test)', () => {
     await new Promise<void>((resolve) => server.close(() => resolve()));
   });
 
-  it('returns all 15 seeded historical events with valid date format and geometry', async () => {
+  it('returns seeded historical events with valid date format and geometry', async () => {
     const res = await fetch(`${baseUrl}/api/events`);
     assert.equal(res.status, 200);
 
     const events = (await res.json()) as LandslideEventResponse[];
-    assert.equal(events.length, 15);
+    assert.ok(events.length >= 15);
 
     for (const evt of events) {
-      assert.ok(evt.id.startsWith('evt-'));
+      assert.ok(evt.id.startsWith('evt-') || evt.id.startsWith('glc-'));
       assert.match(evt.date, /^\d{4}-\d{2}-\d{2}$/, `Date ${evt.date} must be YYYY-MM-DD`);
       assert.equal(evt.geometry.type, 'Point');
-      assert.equal(evt.source, 'synthetic_seed');
+      assert.ok(evt.source === 'synthetic_seed' || evt.source.includes('NASA') || evt.source === 'nasa_glc');
     }
   });
 
-  it('filters events by zone_id (5 events in Gangtok corridor)', async () => {
+  it('filters events by zone_id (Gangtok corridor)', async () => {
     const res = await fetch(`${baseUrl}/api/events?zone_id=gangtok`);
     assert.equal(res.status, 200);
 
     const events = (await res.json()) as LandslideEventResponse[];
-    assert.equal(events.length, 5);
-    const eventIds = events.map((e) => e.id).sort();
-    assert.deepEqual(eventIds, ['evt-001', 'evt-002', 'evt-003', 'evt-004', 'evt-005'].sort());
+    assert.ok(events.length >= 5);
+    const eventIds = events.map((e) => e.id);
+    for (const id of ['evt-001', 'evt-002', 'evt-003', 'evt-004', 'evt-005']) {
+      assert.ok(eventIds.includes(id));
+    }
   });
 
   it('respects the limit query parameter', async () => {

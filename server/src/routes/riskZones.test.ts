@@ -41,20 +41,20 @@ describe('GET /api/risk-zones & /api/risk-zones/:id (Integration Tests)', () => 
         ['LOW', 'MODERATE', 'HIGH', 'SEVERE'].includes(zone.risk_level as string),
         `Invalid risk level ${zone.risk_level}`
       );
-      assert.equal(zone.data_source, 'synthetic_seed');
+      assert.equal(zone.data_source, 'chirps_imd');
     }
 
     // Verify Gangtok golden values
     const gangtok = zones.find((z) => z.id === 'gangtok');
     assert.ok(gangtok);
-    assert.equal(gangtok.risk_score, 0.457);
+    assert.equal(gangtok.risk_score, 0.53);
     assert.equal(gangtok.risk_level, 'MODERATE');
 
     // Verify Mangan golden values
     const mangan = zones.find((z) => z.id === 'mangan');
     assert.ok(mangan);
-    assert.equal(mangan.risk_score, 0.536);
-    assert.equal(mangan.risk_level, 'MODERATE');
+    assert.equal(mangan.risk_score, 0.732);
+    assert.equal(mangan.risk_level, 'HIGH');
   });
 
   it('filters risk zones by region_id query parameter', async () => {
@@ -76,9 +76,9 @@ describe('GET /api/risk-zones & /api/risk-zones/:id (Integration Tests)', () => 
     const zone = (await res.json()) as RiskZoneResponse;
     assert.equal(zone.id, 'gangtok');
     assert.equal(zone.name, 'Gangtok Corridor');
-    assert.equal(zone.risk_score, 0.457);
+    assert.equal(zone.risk_score, 0.53);
     assert.equal(zone.risk_level, 'MODERATE');
-    assert.equal(zone.data_source, 'synthetic_seed');
+    assert.equal(zone.data_source, 'chirps_imd');
   });
 
   it('returns 404 with ZONE_NOT_FOUND when requesting non-existent zone ID', async () => {

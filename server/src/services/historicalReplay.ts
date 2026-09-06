@@ -339,9 +339,25 @@ export async function replayHistoricalEvent(id: string): Promise<HistoricalRepla
   const riskResult = calculateRisk(riskInput);
   const flagged = riskResult.risk_level === 'HIGH' || riskResult.risk_level === 'SEVERE';
 
-  // Look up event category from backtest if not in record
+  // Look up event category from real anchor record, backtest, or database
+  let category = record.category;
+  if (!category && (record.id === REAL_REPLAY_RECORD.id || record.event_id === REAL_REPLAY_RECORD.event_id)) {
+    category = REAL_REPLAY_RECORD.category;
+  }
+  if (!category) {
+    const backtestEvt = BACKTEST_EVENTS.find(e => e.id === record.event_id);
+    if (backtestEvt) category = backtestEvt.category;
+  }
+  if (!category && record.event_id) {
+    try {
+      const evRes = await pool.query('SELECT category FROM landslide_events WHERE id = $1', [record.event_id]);
+      if (evRes.rows.length > 0 && evRes.rows[0].category) {
+        category = evRes.rows[0].category;
+      }
+    } catch { }
+  }
+  category = category || 'landslide';
   const backtestEvt = BACKTEST_EVENTS.find(e => e.id === record.event_id);
-  const category = record.category || backtestEvt?.category || 'landslide';
   const description = record.data_notes || backtestEvt?.description || '';
 
   return {

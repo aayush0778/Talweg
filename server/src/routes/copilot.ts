@@ -313,9 +313,11 @@ copilotRouter.post(
       engine = 'deterministic';
       intent = result.intent;
 
-      // When asked about a specific zone with synthetic data, preserve provenance disclosure
+      // When asked about a specific zone, preserve provenance disclosure
       if (evidence && evidence.data_source === 'synthetic_seed' && !answer.includes('synthetic demo data')) {
         answer += ' Note: current data is synthetic demo data (synthetic_seed).';
+      } else if (evidence && evidence.data_source === 'chirps_imd' && !answer.includes('real observed data')) {
+        answer += ' Note: current precipitation data is real observed data (chirps_imd).';
       }
     }
 

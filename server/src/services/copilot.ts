@@ -141,7 +141,9 @@ export function deterministicAnswer(ctx: CopilotContext, question: string): stri
   const q = question.toLowerCase();
   const zoneName = ctx.zone.name;
   const source = ctx.observation?.source ?? 'synthetic_seed';
-  const provenance = ` Note: current data is synthetic demo data (${source}).`;
+  const provenance = source === 'synthetic_seed'
+    ? ` Note: current data is synthetic demo data (${source}).`
+    : ` Note: current data is real observed data (${source}).`;
 
   if (!ctx.assessment) {
     return `${zoneName} has no current telemetry recorded. Base slope is ${

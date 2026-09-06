@@ -65,14 +65,14 @@ describe('Database & PostGIS Integration', () => {
              ST_AsGeoJSON(geometry)::json AS geojson
       FROM landslide_events
     `);
-    assert.equal(res.rows.length, 15);
+    assert.ok(res.rows.length >= 15);
 
     for (const evt of res.rows) {
-      assert.ok(evt.id.startsWith('evt-'));
+      assert.ok(evt.id.startsWith('evt-') || evt.id.startsWith('glc-'));
       assert.ok(evt.latitude >= 27.0 && evt.latitude <= 28.5, `Lat ${evt.latitude} within Sikkim bounds`);
       assert.ok(evt.longitude >= 88.0 && evt.longitude <= 89.0, `Lon ${evt.longitude} within Sikkim bounds`);
       assert.equal(evt.geojson.type, 'Point');
-      assert.equal(evt.source, 'synthetic_seed');
+      assert.ok(evt.source === 'synthetic_seed' || evt.source.includes('NASA') || evt.source === 'nasa_glc');
     }
   });
 
@@ -89,7 +89,7 @@ describe('Database & PostGIS Integration', () => {
       assert.ok(obs.rainfall_3d >= obs.rainfall_24h);
       assert.ok(obs.soil_moisture >= 0 && obs.soil_moisture <= 1.0);
       assert.ok(obs.slope >= 15 && obs.slope <= 60);
-      assert.equal(obs.source, 'synthetic_seed');
+      assert.equal(obs.source, 'chirps_imd');
     }
   });
 

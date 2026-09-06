@@ -31,11 +31,11 @@ const DATA_SOURCES: DataSource[] = [
     status: 'loaded',
   },
   {
-    name: 'CHIRPS Rainfall Estimates',
-    type: 'SYNTHETIC',
-    description: 'Climate Hazards IR Precipitation — synthetic seed for demo',
+    name: 'CHIRPS & IMD Rainfall',
+    type: 'REAL',
+    description: 'Climate Hazards Center (CHIRPS) & IMD daily gridded satellite precipitation for Sikkim (July 2023 monsoon)',
     records: '6 zone observations',
-    status: 'demo',
+    status: 'loaded',
   },
   {
     name: 'PostGIS Spatial Engine',

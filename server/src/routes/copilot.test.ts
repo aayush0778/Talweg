@@ -40,11 +40,11 @@ describe('POST /api/copilot/ask (Integration Tests)', () => {
     assert.equal(data.source, 'deterministic');
     assert.ok(typeof data.answer === 'string');
     assert.ok(data.answer.includes('Gangtok'));
-    assert.ok(data.answer.includes('synthetic demo data'));
+    assert.ok(data.answer.includes('real observed data'));
 
     assert.equal(data.evidence.zone_id, 'gangtok');
     assert.equal(data.evidence.zone_name, 'Gangtok Corridor');
-    assert.equal(data.evidence.data_source, 'synthetic_seed');
+    assert.equal(data.evidence.data_source, 'chirps_imd');
     assert.equal(data.evidence.risk_level, 'MODERATE');
     assert.ok(Array.isArray(data.evidence.top_factors));
     assert.ok(data.evidence.top_factors.length > 0);

@@ -45,3 +45,6 @@ npm-debug.log*
 
 # Vite
 client/.vite/
+
+# Scratch
+scratch/
