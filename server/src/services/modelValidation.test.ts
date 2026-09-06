@@ -11,11 +11,11 @@ import { BACKTEST_EVENTS } from '../services/backtestScenarios';
 // ============================================================
 
 describe('runModelValidationBacktest()', () => {
-  it('scores exactly the 15 seeded historical events', () => {
+  it('scores exactly the 17 seeded historical events', () => {
     const summary = runModelValidationBacktest();
-    assert.equal(summary.total_events, 15);
-    assert.equal(summary.results.length, 15);
-    assert.equal(BACKTEST_EVENTS.length, 15);
+    assert.equal(summary.total_events, 17);
+    assert.equal(summary.results.length, 17);
+    assert.equal(BACKTEST_EVENTS.length, 17);
   });
 
   it('every result carries a valid risk level and a matching flagged boolean', () => {

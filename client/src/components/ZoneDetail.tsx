@@ -217,7 +217,7 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
                       : 'bg-slate-800/80 border-slate-700/60 text-slate-400'
                   }`}
                 >
-                  {activeEngine === 'ml' ? 'ML Surrogate · Extra Trees' : 'Deterministic Heuristic'}
+                  {activeEngine === 'ml' ? 'ML Surrogate (ExtraTrees)' : 'Deterministic Heuristic'}
                 </span>
               )}
 

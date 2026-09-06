@@ -65,9 +65,9 @@ export function runModelValidationBacktest(): BacktestSummary {
     flagged_pct: Math.round((flagged / results.length) * 1000) / 10,
     by_level,
     methodology:
-      'Each of the 15 seeded historical events is assigned a representative trigger-day rainfall/soil-moisture snapshot based on its reported category and fatality count, then scored by the live deterministic risk engine (calculateRisk).',
+      "Each of the 17 seeded historical events is assigned a representative trigger-day rainfall/soil-moisture snapshot based on its reported category and fatality count, then scored by the live deterministic risk engine (calculateRisk). 15 of these 17 are synthetic demo events (seed.sql); 2 are real, independently verifiable 2025 Sikkim landslides (see each event's citationSource in the raw event data) — though even for those 2, the quantitative trigger inputs remain a documented proxy, not measured historical weather.",
     caveat:
-      'This validates the engine\'s threshold structure against representative trigger conditions, not actual recorded historical weather — no historical rainfall time-series is integrated yet. The underlying 15 events are themselves synthetic demo data, not a real NASA/GLC import.',
+      "This validates the engine's threshold structure against representative trigger conditions, not actual recorded historical weather — no historical rainfall time-series is integrated yet, even for the 2 real verified events. 15 of the 17 underlying events are themselves synthetic demo data, not a real NASA/GLC import.",
     results,
   };
 }

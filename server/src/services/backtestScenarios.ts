@@ -34,13 +34,22 @@ export interface BacktestEvent {
   fatalities: number;
   description: string;
   input: RiskInput;
+  /** True for events that are themselves real, independently verifiable
+   *  disasters (not seed.sql demo fixtures) — even though, like every other
+   *  entry here, their quantitative trigger inputs are still a documented
+   *  proxy rather than measured historical weather. See citationSource. */
+  eventVerified?: boolean;
+  /** Required when eventVerified is true — the real, checkable source. */
+  citationSource?: string;
 }
 
 // historical_density = count of seeded events in that zone (matches how the
 // live system computes this factor from real event counts, not fabricated).
+// Updated to include 2 additional real, independently verified 2025 events
+// (see VERIFIED_2025_EVENTS below) alongside the original 15 seed.sql events.
 const ZONE_DENSITY: Record<string, number> = {
-  gangtok: 5,
-  mangan: 3,
+  gangtok: 6,
+  mangan: 4,
   namchi: 2,
   pakyong: 2,
   gyalshing: 1,
@@ -100,7 +109,8 @@ function buildEvent(
   zoneId: string,
   category: string,
   fatalities: number,
-  description: string
+  description: string,
+  citationSource?: string
 ): BacktestEvent {
   const { rainfall_24h, rainfall_3d, soil_moisture } = triggerDayInputs(category, fatalities);
   return {
@@ -118,6 +128,7 @@ function buildEvent(
       slope: ZONE_SLOPE[zoneId],
       historical_density: ZONE_DENSITY[zoneId],
     },
+    ...(citationSource ? { eventVerified: true, citationSource } : {}),
   };
 }
 
@@ -139,4 +150,30 @@ export const BACKTEST_EVENTS: BacktestEvent[] = [
   buildEvent('evt-013', '2021-09-15', 'gyalshing', 'landslide', 0, 'Seasonal slide west of Gyalshing town'),
   buildEvent('evt-014', '2023-07-10', 'soreng', 'landslide', 0, 'Slope instability near Soreng along Rangit basin'),
   buildEvent('evt-015', '2022-08-28', 'soreng', 'debris_flow', 1, 'Debris flow during intense monsoon rain near Soreng'),
+
+  // --- Real, independently verifiable events (not seed.sql demo fixtures) ---
+  // Event occurrence, date, location and casualty count are real and
+  // checkable against the cited source. Quantitative trigger-day inputs
+  // (rainfall/soil moisture) still follow the same documented proxy
+  // methodology as every other entry above — they are NOT measured
+  // historical weather readings, and eventVerified only marks the event
+  // itself as real, not the input values. See interface docs above.
+  buildEvent(
+    'evt-016',
+    '2025-06-01',
+    'mangan',
+    'landslide',
+    3,
+    'Slope collapse at an army camp near Lachen, North Sikkim, following five days of continuous heavy rainfall',
+    'Sikkim Himalaya early-monsoon landslides, May-Jun 2025 (peer-reviewed, ScienceDirect, published Aug 2025)'
+  ),
+  buildEvent(
+    'evt-017',
+    '2025-05-31',
+    'gangtok',
+    'landslide',
+    0,
+    'Landslide near the NHPC Teesta Stage VI project site at Sirwani, close to Singtam, triggered by continuous heavy rainfall',
+    'Sikkim Himalaya early-monsoon landslides, May-Jun 2025 (peer-reviewed, ScienceDirect, published Aug 2025)'
+  ),
 ];
