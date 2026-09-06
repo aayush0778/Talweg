@@ -25,10 +25,10 @@ const DATA_SOURCES: DataSource[] = [
   },
   {
     name: 'Zone Slope Values',
-    type: 'SYNTHETIC',
-    description: 'Representative slope per zone — not yet computed from a real SRTM DEM',
+    type: 'DERIVED',
+    description: 'SRTM 30m via opentopodata.org, finite-difference estimate at centroid and cardinal points',
     records: '6 zone base slopes',
-    status: 'demo',
+    status: 'loaded',
   },
   {
     name: 'CHIRPS Rainfall Estimates',

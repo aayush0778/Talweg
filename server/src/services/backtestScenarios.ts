@@ -56,13 +56,16 @@ const ZONE_DENSITY: Record<string, number> = {
   soreng: 2,
 };
 
-const ZONE_SLOPE: Record<string, number> = {
-  gangtok: 35.0,
-  mangan: 38.0,
-  namchi: 25.0,
-  pakyong: 30.0,
-  gyalshing: 28.0,
-  soreng: 32.0,
+// Slope values per zone (degrees) — SRTM 30m via opentopodata.org, finite-difference estimate.
+// Centroid elevation sampled alongside 4 cardinal points ~200m away.
+// These match the base_slope in seed.sql.
+export const ZONE_SLOPE: Record<string, number> = {
+  gangtok: 19.6,
+  mangan: 30.6,
+  namchi: 23.7,
+  pakyong: 24.0,
+  gyalshing: 21.3,
+  soreng: 20.4,
 };
 
 const ZONE_NAMES: Record<string, string> = {

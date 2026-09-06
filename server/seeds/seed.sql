@@ -6,7 +6,7 @@
 -- DATA HONESTY:
 --   source = 'synthetic_seed'  → fabricated for demo purposes
 --   source = 'nasa_glc'        → real NASA Global Landslide Catalog records
---   source = 'derived_slope_srtm' → slope values typical for these areas
+--   source = 'derived_slope_srtm' → SRTM 30m via opentopodata.org, finite-difference estimate
 --
 -- The coordinates for regions and risk zones are based on real
 -- Sikkim geography (approximate boundaries). Environmental observations
@@ -34,7 +34,7 @@ INSERT INTO risk_zones (id, region_id, name, description, base_slope, geometry) 
   'sikkim',
   'Gangtok Corridor',
   'State capital and NH10 highway corridor. Steep terrain with dense habitation and significant historical landslide activity.',
-  35.0,
+  19.6,
   ST_GeomFromText('POLYGON((88.58 27.30, 88.65 27.30, 88.65 27.38, 88.58 27.38, 88.58 27.30))', 4326)
 );
 
@@ -44,7 +44,7 @@ INSERT INTO risk_zones (id, region_id, name, description, base_slope, geometry) 
   'sikkim',
   'Mangan - Teesta Valley',
   'North Sikkim district headquarters along the Teesta River valley. Prone to flash floods and debris flows.',
-  38.0,
+  30.6,
   ST_GeomFromText('POLYGON((88.50 27.48, 88.58 27.48, 88.58 27.55, 88.50 27.55, 88.50 27.48))', 4326)
 );
 
@@ -54,7 +54,7 @@ INSERT INTO risk_zones (id, region_id, name, description, base_slope, geometry) 
   'sikkim',
   'Namchi Zone',
   'South Sikkim district headquarters. Moderate slopes with seasonal rainfall-triggered slides.',
-  25.0,
+  23.7,
   ST_GeomFromText('POLYGON((88.32 27.15, 88.40 27.15, 88.40 27.22, 88.32 27.22, 88.32 27.15))', 4326)
 );
 
@@ -64,7 +64,7 @@ INSERT INTO risk_zones (id, region_id, name, description, base_slope, geometry) 
   'sikkim',
   'Pakyong Area',
   'East Sikkim near the Pakyong airport. Cut slopes from construction increase vulnerability.',
-  30.0,
+  24.0,
   ST_GeomFromText('POLYGON((88.58 27.20, 88.66 27.20, 88.66 27.26, 88.58 27.26, 88.58 27.20))', 4326)
 );
 
@@ -74,7 +74,7 @@ INSERT INTO risk_zones (id, region_id, name, description, base_slope, geometry) 
   'sikkim',
   'Gyalshing - West Sikkim',
   'West Sikkim district headquarters. Moderate-to-high slopes, lower population density.',
-  28.0,
+  21.3,
   ST_GeomFromText('POLYGON((88.22 27.28, 88.30 27.28, 88.30 27.35, 88.22 27.35, 88.22 27.28))', 4326)
 );
 
@@ -84,7 +84,7 @@ INSERT INTO risk_zones (id, region_id, name, description, base_slope, geometry) 
   'sikkim',
   'Soreng Sub-division',
   'West Sikkim sub-division. Hilly terrain along the Rangit basin with seasonal instability.',
-  32.0,
+  20.4,
   ST_GeomFromText('POLYGON((88.15 27.12, 88.24 27.12, 88.24 27.19, 88.15 27.19, 88.15 27.12))', 4326)
 );
 
@@ -118,9 +118,9 @@ INSERT INTO landslide_events (id, date, latitude, longitude, geometry, trigger, 
 -- rainfall in mm, soil_moisture 0-1 normalized, slope in degrees.
 
 INSERT INTO environmental_observations (zone_id, timestamp, rainfall_24h, rainfall_3d, rainfall_7d, soil_moisture, slope, source) VALUES
-  ('gangtok',   '2026-08-01T06:00:00Z', 85.0,  180.0, 320.0, 0.78, 35.0, 'synthetic_seed'),
-  ('mangan',    '2026-08-01T06:00:00Z', 110.0, 240.0, 400.0, 0.85, 38.0, 'synthetic_seed'),
-  ('namchi',    '2026-08-01T06:00:00Z', 45.0,  100.0, 180.0, 0.55, 25.0, 'synthetic_seed'),
-  ('pakyong',   '2026-08-01T06:00:00Z', 65.0,  140.0, 260.0, 0.65, 30.0, 'synthetic_seed'),
-  ('gyalshing', '2026-08-01T06:00:00Z', 55.0,  120.0, 220.0, 0.60, 28.0, 'synthetic_seed'),
-  ('soreng',    '2026-08-01T06:00:00Z', 70.0,  155.0, 290.0, 0.70, 32.0, 'synthetic_seed');
+  ('gangtok',   '2026-08-01T06:00:00Z', 85.0,  180.0, 320.0, 0.78, 19.6, 'synthetic_seed'),
+  ('mangan',    '2026-08-01T06:00:00Z', 110.0, 240.0, 400.0, 0.85, 30.6, 'synthetic_seed'),
+  ('namchi',    '2026-08-01T06:00:00Z', 45.0,  100.0, 180.0, 0.55, 23.7, 'synthetic_seed'),
+  ('pakyong',   '2026-08-01T06:00:00Z', 65.0,  140.0, 260.0, 0.65, 24.0, 'synthetic_seed'),
+  ('gyalshing', '2026-08-01T06:00:00Z', 55.0,  120.0, 220.0, 0.60, 21.3, 'synthetic_seed'),
+  ('soreng',    '2026-08-01T06:00:00Z', 70.0,  155.0, 290.0, 0.70, 20.4, 'synthetic_seed');

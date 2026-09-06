@@ -44,7 +44,7 @@ function getFallbackQueryResult<R extends QueryResultRow>(
   text: string,
   params?: unknown[]
 ): QueryResult<R> | null {
-  const normalized = text.toLowerCase();
+  const normalized = text.toLowerCase().trim();
 
   // Regions query
   if (normalized.includes('from regions')) {
@@ -69,7 +69,7 @@ function getFallbackQueryResult<R extends QueryResultRow>(
   ) {
     const targetId = String(params?.[0] || '');
     const found = FALLBACK_ZONES.filter((z) => z.id === targetId);
-    const rows = found.map((z) => ({ id: z.id })) as unknown as R[];
+    const rows = found.map((z) => ({ id: z.id, name: z.name, base_slope: z.base_slope })) as unknown as R[];
     return { rows, command: 'SELECT', rowCount: rows.length, oid: 0, fields: [] };
   }
 
@@ -115,6 +115,10 @@ function getFallbackQueryResult<R extends QueryResultRow>(
     if (zoneId) {
       events = events.filter((e) => e.zone_id === zoneId);
     }
+    if (normalized.includes('count(*)')) {
+      const rows = [{ event_count: events.length }] as unknown as R[];
+      return { rows, command: 'SELECT', rowCount: 1, oid: 0, fields: [] };
+    }
     const limit =
       typeof params?.[2] === 'number'
         ? params[2]
@@ -158,11 +162,63 @@ function getFallbackQueryResult<R extends QueryResultRow>(
 
   // Alerts query
   if (normalized.includes('from alerts')) {
-    const rows = FALLBACK_ALERTS as unknown as R[];
-    return { rows, command: 'SELECT', rowCount: rows.length, oid: 0, fields: [] };
+    let rows = FALLBACK_ALERTS;
+    let statusVal: string | null = null;
+    let zoneVal: string | null = null;
+
+    if (normalized.includes("status = 'active'")) {
+      statusVal = 'active';
+    }
+
+    if (normalized.includes('where ($1::text is null or a.status = $1)')) {
+      if (params?.[0]) statusVal = String(params[0]);
+      if (params?.[1]) zoneVal = String(params[1]);
+    } else if (normalized.includes('where zone_id = $1')) {
+      if (params?.[0]) zoneVal = String(params[0]);
+    }
+
+    if (statusVal && statusVal !== 'all') {
+      rows = rows.filter((a) => a.status === statusVal);
+    }
+    if (zoneVal) {
+      rows = rows.filter((a) => a.zone_id === zoneVal);
+    }
+    return { rows: rows as unknown as R[], command: 'SELECT', rowCount: rows.length, oid: 0, fields: [] };
   }
 
   // Mutations (INSERT, UPDATE, DELETE for alerts)
+  if (normalized.startsWith('insert into alerts')) {
+    const newAlert = {
+      id: FALLBACK_ALERTS.length + 1,
+      zone_id: String(params?.[0] || ''),
+      severity: String(params?.[1] || 'HIGH'),
+      risk_score: Number(params?.[2] || 0.7),
+      message: String(params?.[3] || ''),
+      evidence_json: params?.[4] || {},
+      status: String(params?.[5] || 'active'),
+      created_at: new Date().toISOString(),
+    };
+    (FALLBACK_ALERTS as any).push(newAlert);
+    return { rows: [newAlert] as unknown as R[], command: 'INSERT', rowCount: 1, oid: 0, fields: [] };
+  }
+
+  if (normalized.startsWith('delete from alerts')) {
+    (FALLBACK_ALERTS as any[]).length = 0;
+    return { rows: [] as unknown as R[], command: 'DELETE', rowCount: 1, oid: 0, fields: [] };
+  }
+
+  if (normalized.startsWith('update alerts')) {
+    if (normalized.includes("status = 'resolved'") || normalized.includes('status = $1')) {
+      const zid = params?.[1] ? String(params[1]) : (params?.[0] ? String(params[0]) : null);
+      for (const a of FALLBACK_ALERTS) {
+        if (!zid || a.zone_id === zid) {
+          (a as any).status = 'resolved';
+        }
+      }
+    }
+    return { rows: [] as unknown as R[], command: 'UPDATE', rowCount: 1, oid: 0, fields: [] };
+  }
+
   if (
     normalized.startsWith('insert') ||
     normalized.startsWith('update') ||

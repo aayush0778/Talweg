@@ -35,7 +35,7 @@ describe('GET /api/environment/:zoneId (Integration Test)', () => {
     assert.equal(env.rainfall_3d, 180);
     assert.equal(env.rainfall_7d, 320);
     assert.equal(env.soil_moisture, 0.78);
-    assert.equal(env.slope, 35);
+    assert.equal(env.slope, 19.6);
     assert.equal(env.source, 'synthetic_seed');
     assert.ok(typeof env.timestamp === 'string');
   });

@@ -37,7 +37,7 @@ describe('POST /api/risk/predict & /api/risk/simulate (Integration Tests)', () =
     const data = (await res.json()) as RiskPredictionResponse;
     assert.equal(data.zone_id, 'gangtok');
     assert.equal(data.zone_name, 'Gangtok Corridor');
-    assert.equal(data.risk_score, 0.508);
+    assert.equal(data.risk_score, 0.457);
     assert.equal(data.risk_level, 'MODERATE');
     assert.equal(data.engine, 'deterministic');
     assert.equal(data.data_source, 'synthetic_seed');
@@ -47,7 +47,7 @@ describe('POST /api/risk/predict & /api/risk/simulate (Integration Tests)', () =
     assert.equal(data.inputs_used.rainfall_24h, 85);
     assert.equal(data.inputs_used.rainfall_3d, 180);
     assert.equal(data.inputs_used.soil_moisture, 0.78);
-    assert.equal(data.inputs_used.slope, 35);
+    assert.equal(data.inputs_used.slope, 19.6);
     assert.equal(data.inputs_used.historical_density, 5);
 
     // Factors sorted by contribution descending
@@ -61,7 +61,7 @@ describe('POST /api/risk/predict & /api/risk/simulate (Integration Tests)', () =
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         zone_id: 'gangtok',
-        rainfall_24h: 150, // Increase 24h rainfall from 85mm to 150mm
+        rainfall_24h: 170, // Increase 24h rainfall from 85mm to 170mm to reach HIGH with new slope
       }),
     });
 
@@ -69,9 +69,9 @@ describe('POST /api/risk/predict & /api/risk/simulate (Integration Tests)', () =
 
     const data = (await res.json()) as RiskPredictionResponse;
     assert.equal(data.zone_id, 'gangtok');
-    assert.equal(data.risk_score, 0.606);
+    assert.equal(data.risk_score, 0.584);
     assert.equal(data.risk_level, 'HIGH');
-    assert.equal(data.inputs_used.rainfall_24h, 150);
+    assert.equal(data.inputs_used.rainfall_24h, 170);
     assert.equal(data.inputs_used.rainfall_3d, 180); // Unmodified
   });
 
@@ -159,11 +159,11 @@ describe('Alert Sync via risk computation', () => {
     assert.equal(alerts.length, 0);
   });
 
-  it('simulating gangtok with rainfall_24h: 150 (HIGH) creates exactly ONE active HIGH alert', async () => {
+  it('simulating gangtok with rainfall_24h: 170 (HIGH) creates exactly ONE active HIGH alert', async () => {
     const simRes = await fetch(`${baseUrl}/api/risk/simulate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ zone_id: 'gangtok', rainfall_24h: 150 }),
+      body: JSON.stringify({ zone_id: 'gangtok', rainfall_24h: 170 }),
     });
     assert.equal(simRes.status, 200);
 
@@ -181,7 +181,7 @@ describe('Alert Sync via risk computation', () => {
     const simRes = await fetch(`${baseUrl}/api/risk/simulate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ zone_id: 'gangtok', rainfall_24h: 160 }),
+      body: JSON.stringify({ zone_id: 'gangtok', rainfall_24h: 175 }),
     });
     assert.equal(simRes.status, 200);
 
@@ -201,6 +201,7 @@ describe('Alert Sync via risk computation', () => {
         rainfall_24h: 200,
         rainfall_3d: 500,
         soil_moisture: 1.0,
+        slope: 45,
       }),
     });
     assert.equal(simRes.status, 200);
