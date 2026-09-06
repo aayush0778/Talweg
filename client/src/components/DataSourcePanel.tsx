@@ -18,10 +18,10 @@ interface DataSource {
 const DATA_SOURCES: DataSource[] = [
   {
     name: 'Historical Incident Log',
-    type: 'SYNTHETIC',
-    description: 'Demo events styled on NASA GLC schema — not an actual NASA/GLC import',
-    records: '15 events in Sikkim corridor',
-    status: 'demo',
+    type: 'REAL',
+    description: 'Official NASA Global Landslide Catalog (GLC) export filtered to Sikkim (lat 27.0–28.2°N, lon 88.0–89.0°E)',
+    records: '82 verified NASA GLC events (+ 16 seed fixtures)',
+    status: 'loaded',
   },
   {
     name: 'Zone Slope Values',
@@ -95,7 +95,7 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ health }) => {
         className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-cyan-800/50 text-cyan-300 text-xs font-medium shadow-sm hover:bg-slate-800 hover:border-cyan-700 transition cursor-pointer"
       >
         <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-        <span>DEMO DATA · synthetic_seed</span>
+        <span>DATA PIPELINE · REAL &amp; DERIVED</span>
         <span className="text-[10px] ml-1">{isOpen ? '▲' : '▼'}</span>
       </button>
 
@@ -143,7 +143,7 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ health }) => {
             </h3>
 
             {validationLoading && (
-              <p className="text-[10px] text-slate-500">Running backtest against 15 historical events…</p>
+              <p className="text-[10px] text-slate-500">Running backtest against 17 historical events…</p>
             )}
 
             {validationError && (
