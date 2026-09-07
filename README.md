@@ -45,13 +45,13 @@ SIH26001 — Prototype decision-support system for landslide risk assessment in 
 
 ### 5. Explainable Risk Assessment & Factor Breakdown
 ![TALWEG Zone Telemetry & Explainability](docs/screenshots/05_zone_telemetry_explainability.jpg)
-*Transparent factor attribution breakdown (Rainfall, Soil Saturation, DEM Slope, Historical Density), 7-day risk trajectories, and dual-engine validation (Deterministic baseline vs. Extra Trees ML surrogate).*
+*Transparent factor attribution breakdown (Real CHIRPS Satellite Rainfall, Antecedent Soil Saturation, DEM Slope, Historical Density), 7-day risk trajectories, and dual-engine validation (Deterministic baseline vs. Extra Trees ML surrogate).*
 
 ---
 
 ### 6. Historical Reconstruction & Retrospective Replay
 ![TALWEG Historical Event Replay](docs/screenshots/06_historical_event_replay.png)
-*Retrospective evaluation of documented historical landslide events against the risk engine, featuring provenance-tagged input vectors (REAL / DERIVED / SYNTHETIC), escalation timelines, and decision verification ("WOULD HAVE FLAGGED: YES").*
+*Retrospective evaluation of documented historical landslide events against the risk engine, featuring provenance-tagged input vectors (REAL / DERIVED / SYNTHETIC), authentic ClimateSERV CHIRPS satellite observations, and decision verification ("WOULD HAVE FLAGGED: YES").*
 
 ---
 
