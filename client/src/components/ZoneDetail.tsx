@@ -406,7 +406,9 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
           <div className="px-3 py-1.5 rounded-lg bg-slate-950/40 border border-slate-800/60 text-[11px] text-slate-500 flex items-center justify-between">
             <span>Data provenance:</span>
             <span className="font-mono text-cyan-400/90 font-medium">
-              {environment?.source || zone.data_source || 'synthetic_seed'} (demo)
+              {environment?.source === 'chirps_real'
+                ? 'chirps_real (NASA/USAID SERVIR)'
+                : `${environment?.source || zone.data_source || 'synthetic_seed'} (demo)`}
             </span>
           </div>
         </div>

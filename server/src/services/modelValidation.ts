@@ -65,9 +65,9 @@ export function runModelValidationBacktest(): BacktestSummary {
     flagged_pct: Math.round((flagged / results.length) * 1000) / 10,
     by_level,
     methodology:
-      "Each of the 17 backtest events is assigned a representative trigger-day rainfall/soil-moisture snapshot based on its reported category and fatality count, then scored by the live deterministic risk engine (calculateRisk). 15 of these 17 are benchmark calibration fixtures; 2 are real, independently verifiable 2025 Sikkim landslides (see citationSource). Spatial incidents on the main map are real published NASA GLC records.",
+      "Each of the 17 backtest events is scored by the live deterministic risk engine (calculateRisk). 15 of these 17 are benchmark calibration fixtures; 2 events (evt-016 Lachen Army Camp and evt-017 NHPC Stage VI) have real independently verified occurrence with authentic measured CHIRPS precipitation triggers retrieved via ClimateSERV API (NASA/USAID SERVIR). Spatial incidents on the main map are real published NASA GLC records.",
     caveat:
-      "This validates the engine's threshold structure against representative trigger conditions, not actual recorded historical weather — no historical rainfall time-series is integrated yet, even for the 2 real verified events. The 17 validation events use calibrated synthetic trigger proxies, distinct from the real published NASA GLC events rendered on the spatial map.",
+      "2 of 17 events utilize authentic satellite rainfall observations from NASA/USAID ClimateSERV CHIRPS; the remaining 15 benchmark events use calibrated synthetic trigger proxies. Soil moisture values across all events remain estimated proxies as CHIRPS provides gridded precipitation only. This provides a rigorous methodology validation without claiming complete historical accuracy for all scenarios.",
     results,
   };
 }

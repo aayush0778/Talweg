@@ -132,6 +132,30 @@ describe('Historical Replay Service (historicalReplay.ts)', () => {
       assert.match(result?.validation.caveat ?? '', /not recorded historical weather/i);
     });
 
+    it('replays verified 2025 event (evt-016) with ClimateSERV CHIRPS precipitation', async () => {
+      const result = await replayHistoricalEvent('replay-evt-016');
+      assert.ok(result);
+      assert.equal(result?.id, 'replay-evt-016');
+      assert.equal(result?.validation.status, 'real_replay');
+      assert.match(result?.validation.caveat ?? '', /ClimateSERV CHIRPS/i);
+      assert.equal(result?.inputs.rainfall_24h.provenance.type, 'REAL');
+      assert.equal(result?.inputs.rainfall_24h.value, 24.89);
+      assert.equal(result?.inputs.rainfall_3d.value, 105.65);
+      assert.equal(result?.inputs.soil_moisture.provenance.type, 'SYNTHETIC');
+    });
+
+    it('replays verified 2025 event (evt-017) with ClimateSERV CHIRPS precipitation', async () => {
+      const result = await replayHistoricalEvent('replay-evt-017');
+      assert.ok(result);
+      assert.equal(result?.id, 'replay-evt-017');
+      assert.equal(result?.validation.status, 'real_replay');
+      assert.match(result?.validation.caveat ?? '', /ClimateSERV CHIRPS/i);
+      assert.equal(result?.inputs.rainfall_24h.provenance.type, 'REAL');
+      assert.equal(result?.inputs.rainfall_24h.value, 21.46);
+      assert.equal(result?.inputs.rainfall_3d.value, 72.89);
+      assert.equal(result?.inputs.soil_moisture.provenance.type, 'SYNTHETIC');
+    });
+
     it('returns null when replaying an invalid event id', async () => {
       const result = await replayHistoricalEvent('invalid-event-id');
       assert.equal(result, null);
@@ -144,7 +168,7 @@ describe('Historical Replay Service (historicalReplay.ts)', () => {
       assert.equal(summary.status, 'methodology_only');
       assert.equal(summary.metrics, null);
       assert.ok(summary.methodology_count >= 16);
-      assert.equal(summary.real_replay_count, 1);
+      assert.equal(summary.real_replay_count, 3);
       assert.match(summary.reason ?? '', /insufficient verified/i);
     });
   });

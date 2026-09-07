@@ -41,6 +41,10 @@ export interface BacktestEvent {
   eventVerified?: boolean;
   /** Required when eventVerified is true — the real, checkable source. */
   citationSource?: string;
+  /** True for events with real measured satellite/gauge rainfall observations. */
+  rainfallVerified?: boolean;
+  /** Description of the precipitation telemetry provider when rainfallVerified is true. */
+  rainfallSource?: string;
 }
 
 // historical_density = count of seeded events in that zone (matches how the
@@ -113,9 +117,14 @@ function buildEvent(
   category: string,
   fatalities: number,
   description: string,
-  citationSource?: string
+  citationSource?: string,
+  measuredRainfall?: { rainfall_24h: number; rainfall_3d: number; rainfallSource: string }
 ): BacktestEvent {
-  const { rainfall_24h, rainfall_3d, soil_moisture } = triggerDayInputs(category, fatalities);
+  const proxy = triggerDayInputs(category, fatalities);
+  const rainfall_24h = measuredRainfall ? measuredRainfall.rainfall_24h : proxy.rainfall_24h;
+  const rainfall_3d = measuredRainfall ? measuredRainfall.rainfall_3d : proxy.rainfall_3d;
+  const soil_moisture = proxy.soil_moisture;
+
   return {
     id,
     date,
@@ -132,6 +141,7 @@ function buildEvent(
       historical_density: ZONE_DENSITY[zoneId],
     },
     ...(citationSource ? { eventVerified: true, citationSource } : {}),
+    ...(measuredRainfall ? { rainfallVerified: true, rainfallSource: measuredRainfall.rainfallSource } : {}),
   };
 }
 
@@ -154,13 +164,11 @@ export const BACKTEST_EVENTS: BacktestEvent[] = [
   buildEvent('evt-014', '2023-07-10', 'soreng', 'landslide', 0, 'Slope instability near Soreng along Rangit basin'),
   buildEvent('evt-015', '2022-08-28', 'soreng', 'debris_flow', 1, 'Debris flow during intense monsoon rain near Soreng'),
 
-  // --- Real, independently verifiable events (not seed.sql demo fixtures) ---
-  // Event occurrence, date, location and casualty count are real and
-  // checkable against the cited source. Quantitative trigger-day inputs
-  // (rainfall/soil moisture) still follow the same documented proxy
-  // methodology as every other entry above — they are NOT measured
-  // historical weather readings, and eventVerified only marks the event
-  // itself as real, not the input values. See interface docs above.
+  // --- Real, independently verifiable events with verified CHIRPS precipitation triggers ---
+  // Event occurrence, date, location, and casualty count are real and checkable against the cited source.
+  // Precipitation inputs (24h and 3-day sum) are authentic satellite observations retrieved from the
+  // official ClimateSERV API (datatype=0, CHIRPS daily precipitation, NASA/USAID SERVIR program).
+  // Soil moisture is a representative antecedent saturation estimate.
   buildEvent(
     'evt-016',
     '2025-06-01',
@@ -168,7 +176,12 @@ export const BACKTEST_EVENTS: BacktestEvent[] = [
     'landslide',
     3,
     'Slope collapse at an army camp near Lachen, North Sikkim, following five days of continuous heavy rainfall',
-    'Sikkim Himalaya early-monsoon landslides, May-Jun 2025 (peer-reviewed, ScienceDirect, published Aug 2025)'
+    'Sikkim Himalaya early-monsoon landslides, May-Jun 2025 (peer-reviewed, ScienceDirect, published Aug 2025)',
+    {
+      rainfall_24h: 24.89,
+      rainfall_3d: 105.65,
+      rainfallSource: 'ClimateSERV CHIRPS Satellite Precipitation (NASA/USAID SERVIR)',
+    }
   ),
   buildEvent(
     'evt-017',
@@ -177,6 +190,11 @@ export const BACKTEST_EVENTS: BacktestEvent[] = [
     'landslide',
     0,
     'Landslide near the NHPC Teesta Stage VI project site at Sirwani, close to Singtam, triggered by continuous heavy rainfall',
-    'Sikkim Himalaya early-monsoon landslides, May-Jun 2025 (peer-reviewed, ScienceDirect, published Aug 2025)'
+    'Sikkim Himalaya early-monsoon landslides, May-Jun 2025 (peer-reviewed, ScienceDirect, published Aug 2025)',
+    {
+      rainfall_24h: 21.46,
+      rainfall_3d: 72.89,
+      rainfallSource: 'ClimateSERV CHIRPS Satellite Precipitation (NASA/USAID SERVIR)',
+    }
   ),
 ];

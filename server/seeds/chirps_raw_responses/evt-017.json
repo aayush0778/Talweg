@@ -1,0 +1,75 @@
+{
+  "data": [
+    {
+      "year": 2025,
+      "month": 5,
+      "day": 27,
+      "date": "05/27/2025",
+      "epochTime": 1748304000,
+      "value": {
+        "avg": 0.0
+      },
+      "raw_value": 0.0,
+      "NaN": 0.0,
+      "isodate": "05/27/2025"
+    },
+    {
+      "year": 2025,
+      "month": 5,
+      "day": 28,
+      "date": "05/28/2025",
+      "epochTime": 1748390400,
+      "value": {
+        "avg": 0.0
+      },
+      "raw_value": 0.0,
+      "NaN": 0.0,
+      "isodate": "05/28/2025"
+    },
+    {
+      "year": 2025,
+      "month": 5,
+      "day": 29,
+      "date": "05/29/2025",
+      "epochTime": 1748476800,
+      "value": {
+        "avg": 0.0
+      },
+      "raw_value": 0.0,
+      "NaN": 0.0,
+      "isodate": "05/29/2025"
+    },
+    {
+      "year": 2025,
+      "month": 5,
+      "day": 30,
+      "date": "05/30/2025",
+      "epochTime": 1748563200,
+      "value": {
+        "avg": 51.428741455078125
+      },
+      "raw_value": 51.428741455078125,
+      "NaN": 0.0,
+      "isodate": "05/30/2025"
+    },
+    {
+      "year": 2025,
+      "month": 5,
+      "day": 31,
+      "date": "05/31/2025",
+      "epochTime": 1748649600,
+      "value": {
+        "avg": 21.457778930664062
+      },
+      "raw_value": 21.457778930664062,
+      "NaN": 0.0,
+      "isodate": "05/31/2025"
+    }
+  ],
+  "polygon_Str_ToPass": "{\"type\": \"FeatureCollection\", \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"Polygon\", \"coordinates\": [[[88.58, 27.3], [88.58, 27.38], [88.65, 27.38], [88.65, 27.3], [88.58, 27.3]]]}}]}",
+  "uid": "1e067689-e952-4724-9030-aa6ace852fa3",
+  "datatype": 0,
+  "operationtype": 5,
+  "intervaltype": 0,
+  "derived_product": false
+}
