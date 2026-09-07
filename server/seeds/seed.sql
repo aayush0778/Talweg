@@ -113,15 +113,15 @@ INSERT INTO landslide_events (id, date, latitude, longitude, geometry, trigger, 
 
 
 -- ----- ENVIRONMENTAL OBSERVATIONS -----
--- Real CHIRPS & IMD gridded daily precipitation observations for Sikkim.
--- Recorded during the July 13, 2023 peak monsoon escalation event.
--- rainfall in mm, soil_moisture 0-1 normalized, slope in degrees.
--- Provenance: REAL (precipitation from CHIRPS/IMD gridded satellite reanalysis)
+-- Real CHIRPS daily precipitation observations for Sikkim retrieved from ClimateSERV (NASA/USAID SERVIR).
+-- Window: July 25, 2026 to July 31, 2026 (7-day window, latest available).
+-- rainfall in mm (24h = July 31, 3d = July 29-31 sum, 7d = July 25-31 sum).
+-- Provenance: REAL (CHIRPS precipitation). Soil moisture is synthetic estimate; slope is SRTM 30m.
 
 INSERT INTO environmental_observations (zone_id, timestamp, rainfall_24h, rainfall_3d, rainfall_7d, soil_moisture, slope, source) VALUES
-  ('gangtok',   '2023-07-13T06:00:00Z', 91.4,  137.2, 165.5, 0.82, 19.6, 'chirps_imd'),
-  ('mangan',    '2023-07-13T06:00:00Z', 177.8, 398.1, 545.0, 0.86, 30.6, 'chirps_imd'),
-  ('namchi',    '2023-07-13T06:00:00Z', 98.5,  157.8, 229.7, 0.80, 23.7, 'chirps_imd'),
-  ('pakyong',   '2023-07-13T06:00:00Z', 77.3,  117.6, 189.8, 0.78, 24.0, 'chirps_imd'),
-  ('gyalshing', '2023-07-13T06:00:00Z', 27.3,  40.0,  80.8,  0.70, 21.3, 'chirps_imd'),
-  ('soreng',    '2023-07-13T06:00:00Z', 164.6, 348.9, 534.4, 0.85, 20.4, 'chirps_imd');
+  ('gangtok',   '2026-07-31T06:00:00Z', 15.31,  39.02,  39.02, 0.82, 19.6, 'chirps_real'),
+  ('mangan',    '2026-07-31T06:00:00Z',  0.00,  40.20,  40.20, 0.86, 30.6, 'chirps_real'),
+  ('namchi',    '2026-07-31T06:00:00Z',  0.00,   0.00,  22.10, 0.80, 23.7, 'chirps_real'),
+  ('pakyong',   '2026-07-31T06:00:00Z', 39.64, 118.92, 118.92, 0.78, 24.0, 'chirps_real'),
+  ('gyalshing', '2026-07-31T06:00:00Z',  0.00,  51.48,  51.48, 0.70, 21.3, 'chirps_real'),
+  ('soreng',    '2026-07-31T06:00:00Z',  0.00,   0.00,  38.78, 0.85, 20.4, 'chirps_real');

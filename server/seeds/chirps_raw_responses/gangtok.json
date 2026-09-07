@@ -1,0 +1,101 @@
+{
+  "data": [
+    {
+      "year": 2026,
+      "month": 7,
+      "day": 25,
+      "date": "07/25/2026",
+      "epochTime": 1784937600,
+      "value": {
+        "avg": 0.0
+      },
+      "raw_value": 0.0,
+      "NaN": 0.0,
+      "isodate": "07/25/2026"
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "day": 26,
+      "date": "07/26/2026",
+      "epochTime": 1785024000,
+      "value": {
+        "avg": 0.0
+      },
+      "raw_value": 0.0,
+      "NaN": 0.0,
+      "isodate": "07/26/2026"
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "day": 27,
+      "date": "07/27/2026",
+      "epochTime": 1785110400,
+      "value": {
+        "avg": 0.0
+      },
+      "raw_value": 0.0,
+      "NaN": 0.0,
+      "isodate": "07/27/2026"
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "day": 28,
+      "date": "07/28/2026",
+      "epochTime": 1785196800,
+      "value": {
+        "avg": 0.0
+      },
+      "raw_value": 0.0,
+      "NaN": 0.0,
+      "isodate": "07/28/2026"
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "day": 29,
+      "date": "07/29/2026",
+      "epochTime": 1785283200,
+      "value": {
+        "avg": 0.0
+      },
+      "raw_value": 0.0,
+      "NaN": 0.0,
+      "isodate": "07/29/2026"
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "day": 30,
+      "date": "07/30/2026",
+      "epochTime": 1785369600,
+      "value": {
+        "avg": 23.70924949645996
+      },
+      "raw_value": 23.70924949645996,
+      "NaN": 0.0,
+      "isodate": "07/30/2026"
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "day": 31,
+      "date": "07/31/2026",
+      "epochTime": 1785456000,
+      "value": {
+        "avg": 15.30657958984375
+      },
+      "raw_value": 15.30657958984375,
+      "NaN": 0.0,
+      "isodate": "07/31/2026"
+    }
+  ],
+  "polygon_Str_ToPass": "{\"type\": \"FeatureCollection\", \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"Polygon\", \"coordinates\": [[[88.58, 27.3], [88.58, 27.38], [88.65, 27.38], [88.65, 27.3], [88.58, 27.3]]]}}]}",
+  "uid": "2b727548-88fa-46f6-aada-3938e9bb4c99",
+  "datatype": 0,
+  "operationtype": 5,
+  "intervaltype": 0,
+  "derived_product": false
+}

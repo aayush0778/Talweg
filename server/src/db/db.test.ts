@@ -89,7 +89,7 @@ describe('Database & PostGIS Integration', () => {
       assert.ok(obs.rainfall_3d >= obs.rainfall_24h);
       assert.ok(obs.soil_moisture >= 0 && obs.soil_moisture <= 1.0);
       assert.ok(obs.slope >= 15 && obs.slope <= 60);
-      assert.equal(obs.source, 'chirps_imd');
+      assert.equal(obs.source, 'chirps_real');
     }
   });
 

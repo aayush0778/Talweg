@@ -31,12 +31,12 @@ describe('GET /api/environment/:zoneId (Integration Test)', () => {
     const env = (await res.json()) as EnvironmentResponse;
     assert.equal(env.zone_id, 'gangtok');
     assert.equal(env.zone_name, 'Gangtok Corridor');
-    assert.equal(env.rainfall_24h, 91.4);
-    assert.equal(env.rainfall_3d, 137.2);
-    assert.equal(env.rainfall_7d, 165.5);
+    assert.equal(env.rainfall_24h, 15.31);
+    assert.equal(env.rainfall_3d, 39.02);
+    assert.equal(env.rainfall_7d, 39.02);
     assert.equal(env.soil_moisture, 0.82);
     assert.equal(env.slope, 19.6);
-    assert.equal(env.source, 'chirps_imd');
+    assert.equal(env.source, 'chirps_real');
     assert.ok(typeof env.timestamp === 'string');
   });
 

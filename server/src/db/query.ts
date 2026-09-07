@@ -116,7 +116,9 @@ function getFallbackQueryResult<R extends QueryResultRow>(
       events = events.filter((e) => e.zone_id === zoneId);
     }
     if (normalized.includes('count(*)')) {
-      const rows = [{ event_count: events.length }] as unknown as R[];
+      const targetZone = zoneId ? FALLBACK_ZONES.find((z) => z.id === zoneId) : null;
+      const eventCount = targetZone ? targetZone.historical_density : events.length;
+      const rows = [{ event_count: eventCount }] as unknown as R[];
       return { rows, command: 'SELECT', rowCount: 1, oid: 0, fields: [] };
     }
     const limit =

@@ -31,11 +31,18 @@ const DATA_SOURCES: DataSource[] = [
     status: 'loaded',
   },
   {
-    name: 'CHIRPS & IMD Rainfall',
+    name: 'CHIRPS Rainfall',
     type: 'REAL',
-    description: 'Climate Hazards Center (CHIRPS) & IMD daily gridded satellite precipitation for Sikkim (July 2023 monsoon)',
-    records: '6 zone observations',
+    description: 'Official CHIRPS daily satellite precipitation retrieved via ClimateSERV API (NASA/USAID SERVIR) for Sikkim zones',
+    records: '6 zone observations (July 25–31, 2026)',
     status: 'loaded',
+  },
+  {
+    name: 'Soil Moisture Estimate',
+    type: 'SYNTHETIC',
+    description: 'Representative antecedent saturation estimate — CHIRPS does not provide volumetric soil moisture telemetry',
+    records: '6 zone estimates',
+    status: 'demo',
   },
   {
     name: 'PostGIS Spatial Engine',
@@ -95,7 +102,7 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ health }) => {
         className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-cyan-800/50 text-cyan-300 text-xs font-medium shadow-sm hover:bg-slate-800 hover:border-cyan-700 transition cursor-pointer"
       >
         <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-        <span>DATA PIPELINE · REAL &amp; DERIVED</span>
+        <span>DATA PIPELINE · MIXED (REAL + DEMO)</span>
         <span className="text-[10px] ml-1">{isOpen ? '▲' : '▼'}</span>
       </button>
 

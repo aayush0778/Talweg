@@ -1,0 +1,101 @@
+{
+  "data": [
+    {
+      "year": 2026,
+      "month": 7,
+      "day": 25,
+      "date": "07/25/2026",
+      "epochTime": 1784937600,
+      "value": {
+        "avg": 0.0
+      },
+      "raw_value": 0.0,
+      "NaN": 0.0,
+      "isodate": "07/25/2026"
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "day": 26,
+      "date": "07/26/2026",
+      "epochTime": 1785024000,
+      "value": {
+        "avg": 0.0
+      },
+      "raw_value": 0.0,
+      "NaN": 0.0,
+      "isodate": "07/26/2026"
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "day": 27,
+      "date": "07/27/2026",
+      "epochTime": 1785110400,
+      "value": {
+        "avg": 0.0
+      },
+      "raw_value": 0.0,
+      "NaN": 0.0,
+      "isodate": "07/27/2026"
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "day": 28,
+      "date": "07/28/2026",
+      "epochTime": 1785196800,
+      "value": {
+        "avg": 0.0
+      },
+      "raw_value": 0.0,
+      "NaN": 0.0,
+      "isodate": "07/28/2026"
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "day": 29,
+      "date": "07/29/2026",
+      "epochTime": 1785283200,
+      "value": {
+        "avg": 0.0
+      },
+      "raw_value": 0.0,
+      "NaN": 0.0,
+      "isodate": "07/29/2026"
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "day": 30,
+      "date": "07/30/2026",
+      "epochTime": 1785369600,
+      "value": {
+        "avg": 51.4754753112793
+      },
+      "raw_value": 51.4754753112793,
+      "NaN": 0.0,
+      "isodate": "07/30/2026"
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "day": 31,
+      "date": "07/31/2026",
+      "epochTime": 1785456000,
+      "value": {
+        "avg": 0.0
+      },
+      "raw_value": 0.0,
+      "NaN": 0.0,
+      "isodate": "07/31/2026"
+    }
+  ],
+  "polygon_Str_ToPass": "{\"type\": \"FeatureCollection\", \"features\": [{\"type\": \"Feature\", \"properties\": {}, \"geometry\": {\"type\": \"Polygon\", \"coordinates\": [[[88.22, 27.28], [88.22, 27.35], [88.3, 27.35], [88.3, 27.28], [88.22, 27.28]]]}}]}",
+  "uid": "ef71c4ab-3e36-4301-b64f-ac987cca9bd0",
+  "datatype": 0,
+  "operationtype": 5,
+  "intervaltype": 0,
+  "derived_product": false
+}

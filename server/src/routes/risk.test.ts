@@ -37,15 +37,15 @@ describe('POST /api/risk/predict & /api/risk/simulate (Integration Tests)', () =
     const data = (await res.json()) as RiskPredictionResponse;
     assert.equal(data.zone_id, 'gangtok');
     assert.equal(data.zone_name, 'Gangtok Corridor');
-    assert.equal(data.risk_score, 0.53);
+    assert.equal(data.risk_score, 0.377);
     assert.equal(data.risk_level, 'MODERATE');
     assert.equal(data.engine, 'deterministic');
-    assert.equal(data.data_source, 'chirps_imd');
+    assert.equal(data.data_source, 'chirps_real');
     assert.ok(typeof data.timestamp === 'string');
 
     // Check inputs used
-    assert.equal(data.inputs_used.rainfall_24h, 91.4);
-    assert.equal(data.inputs_used.rainfall_3d, 137.2);
+    assert.equal(data.inputs_used.rainfall_24h, 15.31);
+    assert.equal(data.inputs_used.rainfall_3d, 39.02);
     assert.equal(data.inputs_used.soil_moisture, 0.82);
     assert.equal(data.inputs_used.slope, 19.6);
     assert.equal(data.inputs_used.historical_density, 13);
@@ -61,7 +61,7 @@ describe('POST /api/risk/predict & /api/risk/simulate (Integration Tests)', () =
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         zone_id: 'gangtok',
-        rainfall_24h: 170, // Increase 24h rainfall from 91.4mm to 170mm to reach HIGH with new slope
+        rainfall_24h: 170, // Increase 24h rainfall from 15.31mm to 170mm to reach HIGH with new slope
       }),
     });
 
@@ -69,10 +69,10 @@ describe('POST /api/risk/predict & /api/risk/simulate (Integration Tests)', () =
 
     const data = (await res.json()) as RiskPredictionResponse;
     assert.equal(data.zone_id, 'gangtok');
-    assert.equal(data.risk_score, 0.648);
+    assert.equal(data.risk_score, 0.609);
     assert.equal(data.risk_level, 'HIGH');
     assert.equal(data.inputs_used.rainfall_24h, 170);
-    assert.equal(data.inputs_used.rainfall_3d, 137.2); // Unmodified
+    assert.equal(data.inputs_used.rainfall_3d, 39.02); // Unmodified
   });
 
   it('returns 404 ZONE_NOT_FOUND when predicting for an unknown zone', async () => {
