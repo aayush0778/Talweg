@@ -13,6 +13,7 @@ import { REAL_REPLAY_RECORD } from '../services/historicalReplay';
 async function seed(): Promise<void> {
   const client = await pool.connect();
   console.log('[seed] Connected to database');
+  await client.query('SET statement_timeout = 60000');
 
   try {
     const seedFile = path.join(__dirname, '../../seeds/seed.sql');
@@ -62,6 +63,12 @@ async function seed(): Promise<void> {
       await client.query('DELETE FROM historical_event_replays');
       
       // 1. Seed verified real historical replay record (Phase P0 proof)
+      let realMatchedEventId: string | null = null;
+      try {
+        const chk = await client.query('SELECT id FROM landslide_events WHERE id = $1', [REAL_REPLAY_RECORD.event_id]);
+        if (chk.rows.length > 0) realMatchedEventId = REAL_REPLAY_RECORD.event_id;
+      } catch (e) { }
+
       await client.query(
         `INSERT INTO historical_event_replays (
           id, event_id, event_date, latitude, longitude, zone_id, source, 
@@ -70,7 +77,7 @@ async function seed(): Promise<void> {
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
         [
           REAL_REPLAY_RECORD.id,
-          REAL_REPLAY_RECORD.event_id,
+          realMatchedEventId,
           REAL_REPLAY_RECORD.event_date,
           REAL_REPLAY_RECORD.latitude,
           REAL_REPLAY_RECORD.longitude,
@@ -88,7 +95,7 @@ async function seed(): Promise<void> {
         ]
       );
 
-      // 2. Seed synthetic backtest events for methodology baseline
+      // 2. Seed backtest events (both synthetic and verified real events)
       for (const evt of BACKTEST_EVENTS) {
         // Try to find lat/lng and matching id from events table if seeded
         let lat = 0;
@@ -103,6 +110,14 @@ async function seed(): Promise<void> {
           }
         } catch(e) { }
 
+        const isReal = evt.rainfallVerified;
+        const source = isReal
+          ? (evt.rainfallSource || 'ClimateSERV CHIRPS Satellite Precipitation (NASA/USAID SERVIR)')
+          : (evt.eventVerified ? (evt.citationSource || 'synthetic_seed') : 'synthetic_seed');
+        const dataQuality = isReal
+          ? 'real_replay'
+          : (evt.eventVerified ? 'methodology_only' : 'synthetic_demo');
+
         await client.query(
           `INSERT INTO historical_event_replays (
             id, event_id, event_date, latitude, longitude, zone_id, source, 
@@ -110,9 +125,9 @@ async function seed(): Promise<void> {
             historical_density, data_quality, data_notes, actual_event
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
           [
-            `replay-${evt.id}`, matchedEventId, evt.date, lat, lng, evt.zoneId, 'synthetic_seed',
-            evt.input.rainfall_24h, evt.input.rainfall_3d, null, evt.input.soil_moisture,
-            evt.input.slope, evt.input.historical_density, 'synthetic_demo', evt.description, true
+            `replay-${evt.id}`, matchedEventId, evt.date, lat, lng, evt.zoneId, source,
+            evt.input.rainfall_24h, evt.input.rainfall_3d, isReal ? evt.input.rainfall_3d : null, evt.input.soil_moisture,
+            evt.input.slope, evt.input.historical_density, dataQuality, evt.description, true
           ]
         );
       }
