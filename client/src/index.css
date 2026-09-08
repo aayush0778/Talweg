@@ -1,46 +1,273 @@
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-sans/700.css";
+
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/600.css";
+
 @import "tailwindcss";
 @import "maplibre-gl/dist/maplibre-gl.css";
 
+@theme {
+  /* Typography */
+  --font-sans: "IBM Plex Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  /* Basalt / field-console surfaces */
+  --color-ink-950: #101417;
+  --color-ink-900: #171d20;
+  --color-ink-850: #1d2528;
+  --color-ink-800: #263034;
+  --color-ink-750: #303b3f;
+  --color-ink-700: #405054;
+
+  /* Text */
+  --color-paper-50: #f3f1e8;
+  --color-paper-100: #e1e0d6;
+  --color-paper-200: #c2c7bd;
+  --color-paper-300: #9da8a0;
+  --color-paper-400: #77847d;
+  --color-paper-500: #56635e;
+
+  /* Primary: alpine lichen / survey green */
+  --color-lichen-300: #b7d36b;
+  --color-lichen-400: #9fbe4e;
+  --color-lichen-500: #789b35;
+  --color-lichen-600: #5d7b2c;
+  --color-lichen-700: #40571f;
+
+  /* Secondary: glacial violet for AI/ML only */
+  --color-glacier-300: #d0c1f2;
+  --color-glacier-400: #b5a0e6;
+  --color-glacier-500: #927dcc;
+  --color-glacier-600: #715da8;
+  --color-glacier-700: #51437c;
+
+  /* Monsoon / atmosphere */
+  --color-monsoon-300: #9bc6c0;
+  --color-monsoon-400: #72aaa4;
+  --color-monsoon-500: #4f8581;
+  --color-silt-300: #d0af78;
+  --color-silt-400: #b58c54;
+  --color-silt-500: #8e683d;
+
+  /* Four risk tiers */
+  --color-risk-low: #79c8a5;
+  --color-risk-low-bg: #173d35;
+  --color-risk-moderate: #d8c56a;
+  --color-risk-moderate-bg: #4b421b;
+  --color-risk-high: #e49a62;
+  --color-risk-high-bg: #4e2d1f;
+  --color-risk-severe: #ef7070;
+  --color-risk-severe-bg: #512327;
+
+  /* Borders and focus */
+  --color-line-subtle: #2d393b;
+  --color-line-strong: #4b5b5d;
+  --color-focus: #d8c56a;
+
+  /* Spacing */
+  --spacing-0-5: 0.125rem;
+  --spacing-1-5: 0.375rem;
+  --spacing-2-5: 0.625rem;
+  --spacing-3-5: 0.875rem;
+  --spacing-4-5: 1.125rem;
+  --spacing-5-5: 1.375rem;
+  --spacing-7-5: 1.875rem;
+  --spacing-9-5: 2.375rem;
+
+  /* Radius */
+  --radius-none: 0;
+  --radius-xs: 0.1875rem;
+  --radius-sm: 0.3125rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  /* Elevation */
+  --shadow-panel: 0 1px 0 rgba(243, 241, 232, 0.04),
+    0 12px 30px rgba(0, 0, 0, 0.18);
+  --shadow-drawer: -18px 0 50px rgba(0, 0, 0, 0.28);
+  --shadow-focus: 0 0 0 3px rgba(216, 197, 106, 0.28);
+
+  /* Motion */
+  --ease-talweg: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-talweg-enter: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root {
+  color: var(--color-paper-100);
+  background: var(--color-ink-950);
+  font-family: var(--font-sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 78% 8%, rgba(79, 133, 129, 0.12), transparent 28rem),
+    linear-gradient(135deg, #101417 0%, #141b1e 52%, #111719 100%);
+}
+
+.font-mono,
+[data-mono="true"] {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.surface-panel {
+  background: rgba(29, 37, 40, 0.94);
+  border: 1px solid var(--color-line-subtle);
+  box-shadow: var(--shadow-panel);
+}
+
+.surface-inset {
+  background: rgba(16, 20, 23, 0.58);
+  border: 1px solid rgba(75, 91, 93, 0.52);
+}
+
+.eyebrow {
+  color: var(--color-paper-400);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.focus-ring:focus-visible,
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.risk-low {
+  color: var(--color-risk-low);
+  background: var(--color-risk-low-bg);
+}
+
+.risk-moderate {
+  color: var(--color-risk-moderate);
+  background: var(--color-risk-moderate-bg);
+}
+
+.risk-high {
+  color: var(--color-risk-high);
+  background: var(--color-risk-high-bg);
+}
+
+.risk-severe {
+  color: var(--color-risk-severe);
+  background: var(--color-risk-severe-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media print {
+  :root {
+    color: #17201e;
+    background: #ffffff;
+  }
+
+  body {
+    background: #ffffff;
+  }
+
+  .no-print,
+  header,
+  nav,
+  .map-controls,
+  .drawer-close,
+  button {
+    display: none !important;
+  }
+
+  .surface-panel,
+  .surface-inset {
+    color: #17201e;
+    background: #ffffff;
+    border: 1px solid #bac2bb;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  .print-report {
+    display: block !important;
+    width: 100%;
+    padding: 0;
+  }
+
+  .font-mono {
+    color: #17201e;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
 /* MapLibre Dark Popups & Controls Customization */
 .maplibregl-popup-content {
-  background-color: rgba(15, 23, 42, 0.95) !important;
+  background-color: rgba(23, 29, 32, 0.96) !important;
   backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(51, 65, 85, 0.8) !important;
-  border-radius: 0.75rem !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid var(--color-line-strong) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-panel) !important;
   padding: 0 !important;
+  color: var(--color-paper-100) !important;
+  font-family: var(--font-sans) !important;
 }
 
 .maplibregl-popup-tip {
-  border-top-color: rgba(15, 23, 42, 0.95) !important;
-  border-bottom-color: rgba(15, 23, 42, 0.95) !important;
+  border-top-color: rgba(23, 29, 32, 0.96) !important;
+  border-bottom-color: rgba(23, 29, 32, 0.96) !important;
 }
 
 .maplibregl-popup-close-button {
-  color: #94a3b8 !important;
+  color: var(--color-paper-400) !important;
   font-size: 1.1rem !important;
   padding: 4px 8px !important;
   right: 4px !important;
   top: 4px !important;
-  border-radius: 0.375rem !important;
+  border-radius: var(--radius-xs) !important;
 }
 
 .maplibregl-popup-close-button:hover {
-  color: #f8fafc !important;
-  background-color: rgba(51, 65, 85, 0.5) !important;
+  color: var(--color-paper-50) !important;
+  background-color: var(--color-ink-800) !important;
 }
 
 /* Map controls dark appearance */
 .maplibregl-ctrl-group {
-  background: rgba(15, 23, 42, 0.85) !important;
+  background: rgba(23, 29, 32, 0.92) !important;
   backdrop-filter: blur(8px) !important;
-  border: 1px solid rgba(51, 65, 85, 0.7) !important;
-  border-radius: 0.5rem !important;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid var(--color-line-strong) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-panel) !important;
 }
 
 .maplibregl-ctrl-group button {
-  border-bottom: 1px solid rgba(51, 65, 85, 0.5) !important;
+  border-bottom: 1px solid var(--color-line-subtle) !important;
 }
 
 .maplibregl-ctrl-group button:last-child {
@@ -51,29 +278,29 @@
   filter: invert(1) opacity(0.8);
 }
 
-/* ─── Sidebar resize handle ─── */
+/* Sidebar resize handle */
 .sidebar-resize-handle {
   width: 6px;
   flex: 0 0 6px;
   cursor: col-resize;
   background: transparent;
   transition: background-color 150ms ease;
-  touch-action: none; /* prevents touch scrolling from hijacking the drag */
+  touch-action: none;
 }
+
 .sidebar-resize-handle:hover,
 .sidebar-resize-handle:focus-visible,
 .sidebar-resize-handle:active {
-  background: rgba(59, 130, 246, 0.45); /* match your accent color */
+  background: rgba(159, 190, 78, 0.5); /* lichen-400 accent */
 }
 
-/* While dragging: global resize cursor + no text selection.
-   CRITICAL: disables MapLibre canvas pointer events so the map
-   doesn't pan/zoom while the user is resizing the panel. */
+/* Dragging state */
 .is-resizing-sidebar,
 .is-resizing-sidebar * {
   cursor: col-resize !important;
   user-select: none !important;
 }
+
 .is-resizing-sidebar .maplibregl-canvas-container {
   pointer-events: none !important;
 }

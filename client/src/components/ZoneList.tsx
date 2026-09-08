@@ -1,8 +1,6 @@
 import React from 'react';
 import { RiskZone } from '../types/api';
 import { RiskBadge } from './RiskBadge';
-import { getRiskColor } from '../lib/riskColors';
-import { scoreToPercent } from '../lib/format';
 
 interface ZoneListProps {
   zones: RiskZone[];
@@ -12,69 +10,72 @@ interface ZoneListProps {
 
 export const ZoneList: React.FC<ZoneListProps> = ({ zones, selectedZoneId, onSelectZone }) => {
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-4 border-b border-slate-800/80">
-        <div className="flex items-center justify-between mb-1">
-          <h2 className="text-sm font-bold text-white tracking-tight">Monitored Risk Zones</h2>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-medium">
-            {zones.length} Zones
-          </span>
+    <div className="flex flex-col h-full bg-ink-900 text-paper-100">
+      <div className="p-3.5 border-b border-line-subtle flex items-center justify-between">
+        <div>
+          <h2 className="text-xs font-mono font-semibold uppercase tracking-wider text-paper-300">
+            Monitored Corridors
+          </h2>
+          <p className="text-[11px] text-paper-400 mt-0.5">
+            Ranked Himalayan transit and municipal corridors
+          </p>
         </div>
-        <p className="text-xs text-slate-400">
-          Select a micro-corridor on the map or list to inspect real-time telemetry and risk factors.
-        </p>
+        <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-ink-800 border border-line-subtle text-paper-300">
+          {zones.length} CORRIDORS
+        </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
+      <div className="flex-1 overflow-y-auto divide-y divide-line-subtle" role="list">
         {zones.map((zone) => {
           const isSelected = zone.id === selectedZoneId;
-          const pct = scoreToPercent(zone.risk_score);
-          const color = getRiskColor(zone.risk_level);
+          const score = (zone.risk_score ?? 0).toFixed(2);
 
           return (
             <div
               key={zone.id}
+              role="button"
+              tabIndex={0}
+              aria-selected={isSelected}
               onClick={() => onSelectZone(zone.id)}
-              className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectZone(zone.id);
+                }
+              }}
+              className={`p-3 transition-colors cursor-pointer focus-ring outline-none select-none ${
                 isSelected
-                  ? 'bg-slate-800/90 border-emerald-500 shadow-md shadow-emerald-950/30 ring-1 ring-emerald-500/50'
-                  : 'bg-slate-900/60 border-slate-800/80 hover:bg-slate-800/60 hover:border-slate-700'
+                  ? 'bg-lichen-700/15 border-l-2 border-lichen-400 text-paper-50'
+                  : 'bg-ink-900/40 hover:bg-ink-800/60 border-l-2 border-transparent text-paper-200'
               }`}
             >
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div>
-                  <h3 className="text-sm font-semibold text-white tracking-tight">{zone.name}</h3>
+              {/* Desktop 3-column layout / Mobile 2-row layout */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xs font-semibold text-paper-100 truncate tracking-tight">
+                      {zone.name}
+                    </h3>
+                  </div>
                   {zone.base_slope && (
-                    <span className="text-[11px] text-slate-400">Slope: {zone.base_slope}° base</span>
+                    <span className="text-[10px] font-mono text-paper-400">
+                      Slope: {zone.base_slope}° base
+                    </span>
                   )}
                 </div>
-                <RiskBadge level={zone.risk_level} />
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <RiskBadge level={zone.risk_level} />
+                  <span className="text-xs font-mono font-bold text-paper-100 w-10 text-right tabular-nums">
+                    {score}
+                  </span>
+                </div>
               </div>
 
               {zone.description && (
-                <p className="text-xs text-slate-400 line-clamp-2 mb-3 leading-relaxed">
+                <p className="text-[11px] text-paper-400 line-clamp-1 mt-1 leading-normal">
                   {zone.description}
                 </p>
-              )}
-
-              {pct !== null ? (
-                <div className="space-y-1">
-                  <div className="flex justify-between text-[11px] text-slate-400 font-medium">
-                    <span>Risk Index</span>
-                    <span className="text-slate-200 font-semibold">{pct} / 100</span>
-                  </div>
-                  <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{
-                        width: `${pct}%`,
-                        backgroundColor: color,
-                      }}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="text-[11px] text-slate-500 italic">No observation available</div>
               )}
             </div>
           );

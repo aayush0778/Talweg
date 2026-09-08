@@ -72,16 +72,51 @@ export interface RiskPredictionInputs {
   historical_density: number;
 }
 
+export interface ThresholdSignal {
+  exceeded: boolean;
+  max_ratio: number;
+  critical_duration_days: number;
+  ratios: {
+    d1: number;
+    d3: number;
+    d7: number;
+  };
+  citation: string;
+}
+
+export interface UncertaintyInfo {
+  in_domain: boolean;
+  clamped_features: string[];
+  domain_warning?: string | null;
+}
+
+export interface ModelProvenanceInfo {
+  model_role: string;
+  model_version: string;
+  is_probability: boolean;
+  artifact_hash?: string | null;
+}
+
 export interface RiskPredictionResponse {
   zone_id: string;
   zone_name: string;
   risk_score: number;
   risk_level: RiskLevel;
   contributing_factors: FactorContribution[];
-  engine: 'deterministic' | 'ml';
+  engine: 'deterministic' | 'ml' | 'hybrid';
   timestamp: string;
   inputs_used: RiskPredictionInputs;
   data_source: string;
+  model_version?: string;
+  model_role?: string;
+  is_probability?: boolean;
+  fallback_used?: boolean;
+  fallback_reason?: string | null;
+  data_quality_score?: number;
+  ml_vs_deterministic_delta?: number | null;
+  threshold_signal?: ThresholdSignal;
+  safety_override?: boolean;
+  safety_reason?: string;
 }
 
 export interface PredictRiskRequest {
@@ -201,7 +236,7 @@ export interface HistoricalReplayInputs {
 export interface HistoricalReplayTalweg {
   risk_score: number;
   risk_level: RiskLevel;
-  engine: 'deterministic' | 'ml';
+  engine: 'deterministic' | 'ml' | 'hybrid';
   flagged: boolean;
   contributing_factors: Array<{ factor: string; contribution: number }>;
 }

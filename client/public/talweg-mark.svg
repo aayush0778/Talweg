@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect width="32" height="32" rx="6" fill="#101417"/>
+  <!-- Three stepped contour lines in alpine lichen -->
+  <path d="M 4 25 C 10 23, 18 27, 28 21" fill="none" stroke="#5d7b2c" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M 4 18 C 11 16, 17 20, 28 14" fill="none" stroke="#789b35" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M 5 11 C 12 9, 16 13, 25 7" fill="none" stroke="#9fbe4e" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- Glacial violet AI focal point -->
+  <circle cx="22" cy="7" r="2.2" fill="#b5a0e6"/>
+</svg>

@@ -1,10 +1,10 @@
 import { type DataProvenance } from '../types/api';
 
 const BADGE_STYLES: Record<DataProvenance, string> = {
-  REAL: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400',
-  DERIVED: 'border-blue-500/40 bg-blue-500/10 text-blue-400',
-  SYNTHETIC: 'border-amber-500/40 bg-amber-500/10 text-amber-400',
-  SIMULATED: 'border-purple-500/40 bg-purple-500/10 text-purple-400',
+  REAL: 'text-monsoon-300 border-monsoon-500/60 bg-monsoon-500/12',
+  DERIVED: 'text-silt-300 border-silt-500/60 bg-silt-500/12',
+  SYNTHETIC: 'text-paper-200 border-line-strong bg-ink-800',
+  SIMULATED: 'bg-silt-500/20 text-silt-300 border-silt-400/50',
 };
 
 const BADGE_LABELS: Record<DataProvenance, string> = {
@@ -19,13 +19,22 @@ const BADGE_LABELS: Record<DataProvenance, string> = {
  * Used across Historical Replay, Zone Details, and Data Source panels
  * to maintain scientific honesty and transparency.
  */
-export function ProvenanceBadge({ type, note }: { type: DataProvenance; note?: string }) {
+export function ProvenanceBadge({
+  type,
+  note,
+  className = '',
+}: {
+  type: DataProvenance;
+  note?: string;
+  className?: string;
+}) {
   return (
     <span
       title={note}
-      className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide cursor-default ${BADGE_STYLES[type]}`}
+      className={`inline-flex items-center rounded-sm border px-1.5 py-0.5 text-[10px] font-mono font-medium uppercase tracking-wide cursor-default ${BADGE_STYLES[type]} ${className}`}
     >
       {BADGE_LABELS[type]}
     </span>
   );
 }
+

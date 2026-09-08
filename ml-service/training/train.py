@@ -107,19 +107,48 @@ def train_surrogate_model(output_path: str | None = None) -> dict:
     assert r2 > 0.99, f"Model quality assertion failed: R²={r2:.5f} <= 0.99"
     assert mae < 0.01, f"Model quality assertion failed: MAE={mae:.5f} >= 0.01"
 
+    import hashlib
+
+    domain_bounds = {
+        "rainfall_24h": [0.0, float(NORMALIZATION_MAX["rainfall_24h"])],
+        "rainfall_3d": [0.0, float(NORMALIZATION_MAX["rainfall_3d"])],
+        "soil_moisture": [0.0, float(NORMALIZATION_MAX["soil_moisture"])],
+        "slope": [0.0, float(NORMALIZATION_MAX["slope"])],
+        "historical_density": [0, int(NORMALIZATION_MAX["historical_density"])],
+    }
+
     artifact = {
         "model": model,
         "feature_names": FEATURE_NAMES,
         "normalization_max": NORMALIZATION_MAX,
         "risk_weights": RISK_WEIGHTS,
+        "domain_bounds": domain_bounds,
         "metrics": {"r2": r2, "mae": mae, "max_error": max_err},
         "trained_at": datetime.now(timezone.utc).isoformat(),
         "model_type": "ExtraTreesRegressor (Surrogate)",
-        "version": "0.1.0",
+        "version": "synthetic-surrogate-0.1.0",
+        "model_version": "synthetic-surrogate-0.1.0",
+        "model_role": "synthetic_function_approximation",
+        "is_probability": False,
+        "training_data_version": "synthetic-grid-uniform-seed42-v1",
     }
 
     joblib.dump(artifact, output_path, compress=3)
     print(f"[train] Model artifact saved to: {output_path}")
+
+    # Compute and save SHA-256 hash
+    sha256_hash = hashlib.sha256()
+    with open(output_path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            sha256_hash.update(chunk)
+    artifact_hash = sha256_hash.hexdigest()
+
+    sha256_file = f"{output_path}.sha256"
+    with open(sha256_file, "w", encoding="utf-8") as f:
+        f.write(f"{artifact_hash}  {os.path.basename(output_path)}\n")
+    print(f"[train] Model SHA-256 ({artifact_hash}) saved to: {sha256_file}")
+
+    artifact["artifact_hash"] = artifact_hash
     return artifact
 
 

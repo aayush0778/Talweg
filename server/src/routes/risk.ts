@@ -101,6 +101,16 @@ async function computeZoneRisk(body: unknown): Promise<RiskPredictionResponse> {
     timestamp: new Date().toISOString(),
     inputs_used: resolved.input,
     data_source: dataSource,
+    model_version: calc.model_version,
+    model_role: calc.model_role,
+    is_probability: calc.is_probability,
+    fallback_used: calc.fallback_used,
+    fallback_reason: calc.fallback_reason,
+    data_quality_score: calc.data_quality_score,
+    ml_vs_deterministic_delta: calc.ml_vs_deterministic_delta,
+    threshold_signal: calc.threshold_signal,
+    safety_override: calc.safety_override,
+    safety_reason: calc.safety_reason,
   };
 }
 

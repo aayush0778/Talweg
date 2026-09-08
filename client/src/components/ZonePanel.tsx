@@ -9,7 +9,7 @@ import {
 import { ScenarioValues } from '../lib/scenario';
 import { ZoneList } from './ZoneList';
 import { ZoneDetail } from './ZoneDetail';
-import { StatusMessage } from './StatusMessage';
+import { PanelError, PanelEmpty } from './PanelStates';
 import { ZoneComparison } from './ZoneComparison';
 import { Skeleton, SkeletonCard } from './Skeleton';
 import { SidebarResizeHandle } from './SidebarResizeHandle';
@@ -57,7 +57,7 @@ interface ZonePanelProps {
 
 export const ZonePanel: React.FC<ZonePanelProps> = ({
   sidebarWidth,
-  isDesktop,
+  isDesktop = true,
   onResizePointerDown,
   onResizeDoubleClick,
   onResizeNudge,
@@ -93,11 +93,22 @@ export const ZonePanel: React.FC<ZonePanelProps> = ({
 }) => {
   const [viewMode, setViewMode] = useState<'list' | 'dashboard'>('list');
 
+  // Desktop side panel vs. Mobile bottom sheet
+  const panelClasses = isDesktop
+    ? 'absolute top-20 right-6 bottom-6 w-[420px] max-w-[min(640px,46vw)] z-20 bg-ink-900/95 backdrop-blur-md border border-line-strong shadow-drawer rounded-2xl flex flex-col overflow-hidden pointer-events-auto'
+    : 'fixed inset-x-0 bottom-0 z-40 max-h-[92dvh] bg-ink-900/98 backdrop-blur-xl border-t border-line-strong shadow-drawer rounded-t-2xl flex flex-col overflow-hidden pointer-events-auto pb-[env(safe-area-inset-bottom,1rem)]';
+
   return (
     <aside
       style={isDesktop && sidebarWidth ? { width: `${sidebarWidth}px` } : undefined}
-      className="absolute top-20 right-6 bottom-6 w-[400px] z-10 bg-slate-900/90 backdrop-blur-md border border-slate-800 shadow-2xl rounded-2xl flex flex-col overflow-hidden pointer-events-auto"
+      className={panelClasses}
     >
+      {/* Mobile drag handle */}
+      {!isDesktop && (
+        <div className="w-12 h-1.5 bg-ink-700 rounded-full my-2 mx-auto shrink-0" aria-hidden="true" />
+      )}
+
+      {/* Desktop resize handle */}
       {isDesktop && onResizePointerDown && onResizeDoubleClick && onResizeNudge && (
         <div className="absolute left-0 top-0 bottom-0 z-30 flex items-stretch">
           <SidebarResizeHandle
@@ -107,9 +118,10 @@ export const ZonePanel: React.FC<ZonePanelProps> = ({
           />
         </div>
       )}
+
       {zonesLoading ? (
-        <div className="p-4 space-y-3 overflow-y-auto">
-          <div className="flex justify-between items-center pb-2 border-b border-slate-800/80">
+        <div className="p-4 space-y-3 overflow-y-auto" role="status" aria-busy="true">
+          <div className="flex justify-between items-center pb-2 border-b border-line-subtle">
             <Skeleton className="h-5 w-28" />
             <Skeleton className="h-5 w-14 rounded-full" />
           </div>
@@ -119,9 +131,8 @@ export const ZonePanel: React.FC<ZonePanelProps> = ({
         </div>
       ) : zonesError ? (
         <div className="p-6 flex flex-col items-center justify-center h-full">
-          <StatusMessage
-            type="error"
-            title="Failed to Load Risk Zones"
+          <PanelError
+            title="Failed to Load Risk Corridors"
             message={zonesError.message}
             onRetry={onRetryZones}
           />
@@ -154,18 +165,32 @@ export const ZonePanel: React.FC<ZonePanelProps> = ({
           onLaunchZoneRunout={onLaunchZoneRunout}
         />
       ) : zones && zones.length > 0 ? (
-        <div className="flex flex-col h-full">
-          <div className="flex-none p-4 pb-2 flex justify-between items-center border-b border-slate-800/80">
-            <h2 className="text-lg font-semibold text-slate-100">Risk Zones</h2>
-            <div className="flex items-center gap-1 bg-slate-800/60 rounded-lg p-0.5">
-              <button 
+        <div className="flex flex-col h-full overflow-hidden">
+          <div className="flex-none p-3.5 pb-2 flex justify-between items-center border-b border-line-subtle">
+            <h2 className="text-xs font-mono font-semibold uppercase tracking-wider text-paper-300">
+              Corridor Intelligence
+            </h2>
+            <div className="flex items-center gap-1 bg-ink-950 p-0.5 rounded-md border border-line-subtle">
+              <button
                 onClick={() => setViewMode('list')}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${viewMode === 'list' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200'}`}
-              >List</button>
-              <button 
+                className={`px-2.5 py-1 rounded text-xs font-medium transition cursor-pointer ${
+                  viewMode === 'list'
+                    ? 'bg-lichen-500 text-ink-950 font-semibold shadow-sm'
+                    : 'text-paper-400 hover:text-paper-100'
+                }`}
+              >
+                List
+              </button>
+              <button
                 onClick={() => setViewMode('dashboard')}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${viewMode === 'dashboard' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200'}`}
-              >Dashboard</button>
+                className={`px-2.5 py-1 rounded text-xs font-medium transition cursor-pointer ${
+                  viewMode === 'dashboard'
+                    ? 'bg-lichen-500 text-ink-950 font-semibold shadow-sm'
+                    : 'text-paper-400 hover:text-paper-100'
+                }`}
+              >
+                Matrix
+              </button>
             </div>
           </div>
           <div className="flex-1 overflow-hidden">
@@ -178,7 +203,7 @@ export const ZonePanel: React.FC<ZonePanelProps> = ({
         </div>
       ) : (
         <div className="p-6 flex flex-col items-center justify-center h-full">
-          <StatusMessage type="empty" message="No risk zones available for this region." />
+          <PanelEmpty message="No risk corridors recorded for this regional bounding box." />
         </div>
       )}
     </aside>

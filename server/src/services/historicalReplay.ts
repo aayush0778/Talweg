@@ -224,7 +224,7 @@ export async function getHistoricalReplayById(id: string): Promise<HistoricalRep
         longitude: ev.longitude,
         zone_id: ev.zone_id || 'gangtok',
         source: isGlc ? 'NASA Global Landslide Catalog (GLC)' : ev.source,
-        data_quality: isGlc ? 'real_replay' : 'methodology_only',
+        data_quality: 'methodology_only',
         actual_event: true,
         data_notes: ev.description,
       };
@@ -296,7 +296,7 @@ export async function replayHistoricalEvent(id: string): Promise<HistoricalRepla
         try {
           const eventRes = await pool.query(
             `SELECT e.id, e.date, e.latitude, e.longitude, e.trigger, e.category, e.fatalities, e.description, e.source,
-                    z.id as zone_id, z.name as zone_name, z.base_slope
+                    z.id as zone_id, z.name as zone_name, z.base_slope 
              FROM landslide_events e
              CROSS JOIN LATERAL (
                SELECT id, name, base_slope 
@@ -337,8 +337,8 @@ export async function replayHistoricalEvent(id: string): Promise<HistoricalRepla
               soil_moisture: 0.82,
               slope: ev.base_slope ?? 20.0,
               historical_density: 4,
-              data_quality: isGlc ? 'real_replay' : 'methodology_only',
-              data_notes: ev.description,
+              data_quality: 'methodology_only',
+              data_notes: `${ev.description || ''} (Event verified via catalog; environmental inputs are representative proxy estimates)`.trim(),
               actual_event: true,
               category: ev.category || 'landslide',
             };

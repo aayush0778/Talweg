@@ -1,3 +1,4 @@
+import { MapPinned, LocateFixed, Mountain } from 'lucide-react';
 import React, { useEffect, useRef, useState, useCallback, useImperativeHandle, forwardRef } from 'react';
 import maplibregl, { GeoJSONSource, MapLayerMouseEvent, MapMouseEvent } from 'maplibre-gl';
 import { Region, RiskZone, LandslideEvent, HazardProgressionResponse } from '../types/api';
@@ -76,7 +77,7 @@ function MapViewComponent(
       }
       map.setTerrain({ source: 'terrain-dem', exaggeration: 1.25 });
     } catch (e) {
-      console.warn('[map] Could not attach 3D raster terrain source, applying 3D pitch perspective', e);
+      // Silent fallback to pitch perspective if raster terrain is unavailable
     }
     map.easeTo({ pitch: 55, duration: 900 });
     return true;
@@ -267,14 +268,14 @@ function MapViewComponent(
             'match',
             ['get', 'risk_level'],
             'LOW',
-            '#22c55e',
+            '#79c8a5',
             'MODERATE',
-            '#eab308',
+            '#d8c56a',
             'HIGH',
-            '#f97316',
+            '#e49a62',
             'SEVERE',
-            '#dc2626',
-            '#64748b',
+            '#ef7070',
+            '#405054',
           ],
           'fill-opacity': 0.4,
         },
@@ -289,14 +290,14 @@ function MapViewComponent(
             'match',
             ['get', 'risk_level'],
             'LOW',
-            '#22c55e',
+            '#79c8a5',
             'MODERATE',
-            '#eab308',
+            '#d8c56a',
             'HIGH',
-            '#f97316',
+            '#e49a62',
             'SEVERE',
-            '#dc2626',
-            '#64748b',
+            '#ef7070',
+            '#405054',
           ],
           'line-width': 1.8,
           'line-opacity': 0.9,
@@ -308,7 +309,7 @@ function MapViewComponent(
         type: 'line',
         source: 'zones',
         paint: {
-          'line-color': '#ffffff',
+          'line-color': '#9fbe4e',
           'line-width': 3.5,
           'line-opacity': 1.0,
         },
@@ -321,8 +322,8 @@ function MapViewComponent(
         source: 'events',
         paint: {
           'circle-radius': 5.5,
-          'circle-color': '#1e293b',
-          'circle-stroke-color': '#ffffff',
+          'circle-color': '#101417',
+          'circle-stroke-color': '#f2efe9',
           'circle-stroke-width': 1.5,
           'circle-opacity': 0.9,
         },
@@ -341,8 +342,8 @@ function MapViewComponent(
           'text-allow-overlap': false,
         },
         paint: {
-          'text-color': '#ffffff',
-          'text-halo-color': '#0f172a',
+          'text-color': '#f2efe9',
+          'text-halo-color': '#101417',
           'text-halo-width': 1.5,
         },
       });
@@ -795,50 +796,57 @@ function MapViewComponent(
       <div ref={containerRef} className="w-full h-full" />
       <MapLegend />
 
+      {/* Sub-legend GIS Status Strip */}
+      <div className="absolute bottom-36 left-6 z-10 hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-md bg-ink-900/92 backdrop-blur-md border border-line-strong text-[10px] font-mono text-paper-300 pointer-events-auto shadow-panel">
+        <span className="w-1.5 h-1.5 rounded-full bg-lichen-400 animate-pulse" aria-hidden="true" />
+        <span className="font-semibold text-paper-100">SIKKIM HIMALAYA</span>
+        <span className="text-paper-400">27.0°–28.2°N</span>
+      </div>
+
       {/* Floating Map Perspective & Terrain Controller */}
-      <div className="absolute top-4 left-4 z-10 flex items-center bg-slate-900/90 backdrop-blur-md p-1 rounded-xl border border-slate-700/80 shadow-2xl space-x-1">
+      <div className="absolute top-4 left-4 z-10 flex items-center bg-ink-900/92 backdrop-blur-md p-1 rounded-lg border border-line-strong shadow-panel space-x-1">
         <button
           onClick={handleTopView}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] sm:min-h-0 rounded-md text-xs font-medium tracking-wide transition-all cursor-pointer ${
             activeViewMode === 'top' && !terrain3D
-              ? 'bg-blue-600 text-white shadow-md shadow-blue-950/50'
-              : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+              ? 'bg-lichen-500 text-ink-950 font-semibold shadow-sm'
+              : 'text-paper-300 hover:text-paper-50 hover:bg-ink-800'
           }`}
           title="Top View [T] (State Overview - Nadir 0°)"
         >
-          <span>🗺️</span>
+          <MapPinned className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
           <span>Top View</span>
-          <kbd className="px-1.5 py-0.5 rounded bg-slate-800/90 text-[10px] text-slate-300 font-mono border border-slate-700/80">T</kbd>
+          <kbd className="px-1.5 py-0.5 rounded bg-ink-800 text-[10px] text-paper-300 font-mono border border-line-subtle">T</kbd>
         </button>
 
         <button
           onClick={handleFocusZone}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] sm:min-h-0 rounded-md text-xs font-medium tracking-wide transition-all cursor-pointer ${
             activeViewMode === 'focus' && !terrain3D
-              ? 'bg-blue-600 text-white shadow-md shadow-blue-950/50'
-              : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+              ? 'bg-lichen-500 text-ink-950 font-semibold shadow-sm'
+              : 'text-paper-300 hover:text-paper-50 hover:bg-ink-800'
           }`}
           title="Front / Focus View [F] (Focus on Zone Centroid)"
         >
-          <span>🎯</span>
+          <LocateFixed className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
           <span>{selectedZoneId ? 'Focus Zone' : 'Front View'}</span>
-          <kbd className="px-1.5 py-0.5 rounded bg-slate-800/90 text-[10px] text-slate-300 font-mono border border-slate-700/80">F</kbd>
+          <kbd className="px-1.5 py-0.5 rounded bg-ink-800 text-[10px] text-paper-300 font-mono border border-line-subtle">F</kbd>
         </button>
 
-        <div className="w-[1px] h-4 bg-slate-700 mx-1" />
+        <div className="w-[1px] h-4 bg-line-strong mx-1" />
 
         <button
           onClick={handleToggleTerrain}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] sm:min-h-0 rounded-md text-xs font-medium tracking-wide transition-all cursor-pointer ${
             terrain3D
-              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/50'
-              : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+              ? 'bg-lichen-500 text-ink-950 font-semibold shadow-sm'
+              : 'text-paper-300 hover:text-paper-50 hover:bg-ink-800'
           }`}
           title={terrain3D ? 'Disable 3D Terrain [D] (Return to 2D Top View)' : 'Explore in 3D Relief Terrain [D] (55° Pitch)'}
         >
-          <span>🏔️</span>
+          <Mountain className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
           <span>{terrain3D ? '3D Active' : '3D Terrain'}</span>
-          <kbd className="px-1.5 py-0.5 rounded bg-slate-800/90 text-[10px] text-slate-300 font-mono border border-slate-700/80">D</kbd>
+          <kbd className="px-1.5 py-0.5 rounded bg-ink-800 text-[10px] text-paper-300 font-mono border border-line-subtle">D</kbd>
         </button>
       </div>
     </div>

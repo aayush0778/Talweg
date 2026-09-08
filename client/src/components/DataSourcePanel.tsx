@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { Database, CheckCircle2, TriangleAlert, FlaskConical, ChevronUp, ChevronDown } from 'lucide-react';
 import type { HealthResponse, ModelValidationResponse, DataProvenance } from '../types/api';
 import { fetchModelValidation } from '../lib/apiClient';
 import { ProvenanceBadge } from './ProvenanceBadge';
@@ -54,7 +55,7 @@ const DATA_SOURCES: DataSource[] = [
   {
     name: 'ML Surrogate Model',
     type: 'DERIVED',
-    description: 'ExtraTreesRegressor, R² > 0.998 on its own synthetic training grid — see backtest below for a ground-truth-adjacent check',
+    description: 'ExtraTreesRegressor, R² > 0.998 on synthetic grid',
     records: 'Model loaded',
     status: 'loaded',
   },
@@ -67,11 +68,10 @@ const DATA_SOURCES: DataSource[] = [
   },
 ];
 
-
 const statusIndicator: Record<string, { color: string; label: string }> = {
-  connected: { color: 'bg-emerald-400', label: 'Live' },
-  loaded: { color: 'bg-sky-400', label: 'Loaded' },
-  demo: { color: 'bg-amber-400', label: 'Demo' },
+  connected: { color: 'bg-lichen-400', label: 'Live' },
+  loaded: { color: 'bg-monsoon-400', label: 'Loaded' },
+  demo: { color: 'bg-silt-400', label: 'Demo' },
 };
 
 export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ health }) => {
@@ -95,89 +95,100 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ health }) => {
     });
   }, [validation, validationLoading]);
 
+  const isHealthy = health?.database === 'connected';
+
   return (
     <div className="relative">
       <button
         onClick={handleToggle}
-        className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-cyan-800/50 text-cyan-300 text-xs font-medium shadow-sm hover:bg-slate-800 hover:border-cyan-700 transition cursor-pointer"
+        className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-md bg-ink-900 border border-line-subtle text-paper-300 text-xs font-mono shadow-sm hover:bg-ink-800 hover:border-line-strong transition cursor-pointer"
+        aria-expanded={isOpen}
       >
-        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-        <span>DATA PIPELINE · MIXED (REAL + DEMO)</span>
-        <span className="text-[10px] ml-1">{isOpen ? '▲' : '▼'}</span>
+        <span className="w-1.5 h-1.5 rounded-full bg-lichen-400 animate-pulse" aria-hidden="true" />
+        <span>DATA PIPELINE · MIXED</span>
+        {isOpen ? <ChevronUp className="w-3.5 h-3.5 ml-0.5" /> : <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
       </button>
 
       {isOpen && (
-        <div className="absolute top-10 right-0 w-96 bg-slate-900/98 backdrop-blur-xl border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden">
-          <div className="p-3 border-b border-slate-800">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              🔌 Data Sources & Pipeline Status
-            </h3>
-            <p className="text-[10px] text-slate-500 mt-1">
-              {health?.database === 'connected' ? '✅ All systems operational' : '⚠️ Database degraded'} ·
-              PostGIS {health?.postgis ?? '3.x'}
-            </p>
+        <div className="absolute top-10 right-0 w-96 bg-ink-900/98 backdrop-blur-xl border border-line-strong rounded-lg shadow-2xl z-50 overflow-hidden text-paper-200">
+          <div className="p-3 border-b border-line-subtle bg-ink-950/60">
+            <div className="flex items-center gap-2">
+              <Database className="w-3.5 h-3.5 text-lichen-400" aria-hidden="true" />
+              <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-paper-200">
+                Pipeline & Provenance
+              </h3>
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] text-paper-400 mt-1">
+              {isHealthy ? (
+                <>
+                  <CheckCircle2 className="w-3 h-3 text-lichen-400" aria-hidden="true" />
+                  <span>PostGIS operational ({health?.postgis ?? '3.x'})</span>
+                </>
+              ) : (
+                <>
+                  <TriangleAlert className="w-3 h-3 text-risk-severe" aria-hidden="true" />
+                  <span>Database degraded</span>
+                </>
+              )}
+            </div>
           </div>
 
-          <div className="max-h-80 overflow-y-auto">
+          <div className="max-h-80 overflow-y-auto divide-y divide-line-subtle">
             {DATA_SOURCES.map((src) => {
               const status = statusIndicator[src.status];
 
               return (
                 <div
                   key={src.name}
-                  className="px-3 py-2.5 border-b border-slate-800/60 hover:bg-slate-800/40 transition"
+                  className="px-3 py-2.5 hover:bg-ink-800/40 transition"
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px] font-semibold text-slate-200">{src.name}</span>
+                    <span className="text-[11px] font-semibold text-paper-100">{src.name}</span>
                     <div className="flex items-center gap-2">
                       <ProvenanceBadge type={src.type} note={src.type === 'SYNTHETIC' ? 'Demo seed data' : undefined} />
                       <span className="flex items-center gap-1">
                         <span className={`w-1.5 h-1.5 rounded-full ${status.color}`} />
-                        <span className="text-[9px] text-slate-400">{status.label}</span>
+                        <span className="text-[9px] font-mono text-paper-400">{status.label}</span>
                       </span>
                     </div>
                   </div>
-                  <p className="text-[10px] text-slate-500">{src.description}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">{src.records}</p>
+                  <p className="text-[10px] text-paper-400 leading-normal">{src.description}</p>
+                  <p className="text-[10px] font-mono text-paper-300 mt-0.5">{src.records}</p>
                 </div>
               );
             })}
           </div>
 
-          <div className="p-3 border-t border-slate-800 bg-slate-950/60">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-              🔬 Model Validation Backtest
-            </h3>
+          <div className="p-3 border-t border-line-subtle bg-ink-950/60">
+            <div className="flex items-center gap-1.5 mb-2">
+              <FlaskConical className="w-3.5 h-3.5 text-paper-400" aria-hidden="true" />
+              <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-paper-300">
+                Model Validation
+              </h3>
+            </div>
 
             {validationLoading && (
-              <p className="text-[10px] text-slate-500">Running backtest against 17 historical events…</p>
+              <p className="text-[10px] text-paper-400 font-mono">Running backtest against 17 historical events…</p>
             )}
 
             {validationError && (
-              <p className="text-[10px] text-rose-400">Could not load backtest: {validationError}</p>
+              <p className="text-[10px] text-risk-severe font-mono">Could not load backtest: {validationError}</p>
             )}
 
             {validation && (
               <div className="space-y-2">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-lg font-bold text-emerald-400">
+                  <span className="text-lg font-mono font-bold text-lichen-400">
                     {validation.flagged_high_or_severe}/{validation.total_events}
                   </span>
-                  <span className="text-[10px] text-slate-400">
-                    historical events flagged HIGH+ ({validation.flagged_pct}%) under representative trigger
-                    conditions
+                  <span className="text-[10px] text-paper-400 font-mono">
+                    events flagged HIGH+ ({validation.flagged_pct}%)
                   </span>
                 </div>
-                <p className="text-[9px] text-slate-500 leading-relaxed">{validation.methodology}</p>
-                <p className="text-[9px] text-amber-400/90 leading-relaxed italic">⚠ {validation.caveat}</p>
+                <p className="text-[9px] text-paper-400 leading-normal">{validation.methodology}</p>
+                <p className="text-[9px] text-silt-300 leading-normal italic">⚠ {validation.caveat}</p>
               </div>
             )}
-          </div>
-
-          <div className="p-2.5 bg-slate-950/80 border-t border-slate-800">
-            <p className="text-[9px] text-slate-500 text-center">
-              Classification: REAL = published source | DERIVED = computed from real data | SYNTHETIC = demo seed
-            </p>
           </div>
         </div>
       )}

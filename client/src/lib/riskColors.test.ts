@@ -3,10 +3,10 @@ import { getRiskColor, getRiskBadgeClasses, RISK_COLORS } from './riskColors';
 
 describe('Risk Colors (riskColors.ts)', () => {
   it('maps all defined risk levels to distinct valid hex colors', () => {
-    expect(getRiskColor('LOW')).toBe('#22c55e');
-    expect(getRiskColor('MODERATE')).toBe('#eab308');
-    expect(getRiskColor('HIGH')).toBe('#f97316');
-    expect(getRiskColor('SEVERE')).toBe('#dc2626');
+    expect(getRiskColor('LOW')).toBe('#79c8a5');
+    expect(getRiskColor('MODERATE')).toBe('#d8c56a');
+    expect(getRiskColor('HIGH')).toBe('#e49a62');
+    expect(getRiskColor('SEVERE')).toBe('#ef7070');
   });
 
   it('maps null or undefined risk level to slate gray fallback color', () => {
@@ -16,19 +16,20 @@ describe('Risk Colors (riskColors.ts)', () => {
 
   it('provides Tailwind classes with matching text/bg/border for all levels', () => {
     const low = getRiskBadgeClasses('LOW');
-    expect(low.text).toContain('emerald');
-    expect(low.bg).toContain('emerald');
+    expect(low.text).toBe('text-risk-low');
+    expect(low.bg).toBe('bg-risk-low-bg');
 
     const mod = getRiskBadgeClasses('MODERATE');
-    expect(mod.text).toContain('amber');
+    expect(mod.text).toBe('text-risk-moderate');
 
     const high = getRiskBadgeClasses('HIGH');
-    expect(high.text).toContain('orange');
+    expect(high.text).toBe('text-risk-high');
 
     const severe = getRiskBadgeClasses('SEVERE');
-    expect(severe.text).toContain('rose');
+    expect(severe.text).toBe('text-risk-severe');
 
     const none = getRiskBadgeClasses(null);
-    expect(none.text).toContain('slate');
+    expect(none.text).toBe('text-paper-400');
   });
 });
+

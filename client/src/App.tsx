@@ -198,7 +198,7 @@ export const App: React.FC = () => {
       <ShortcutOverlay isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
 
       {/* Main Full-Bleed Interactive Workspace */}
-      <main className="relative flex-1 w-full h-full overflow-hidden">
+      <main id="main-content" tabIndex={-1} className="relative flex-1 w-full h-full overflow-hidden focus:outline-none">
         {/* P0-B.2: Top-Floating Active Alerts Banner */}
         <AlertBanner alerts={alerts} onSelectZone={handleSelectZone} />
 

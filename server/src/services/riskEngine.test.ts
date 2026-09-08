@@ -4,6 +4,9 @@ import {
   calculateRisk,
   classifyRisk,
   normalize,
+  calculateThresholdSignal,
+  calculateARI,
+  composeHybridRisk,
   RISK_WEIGHTS,
   NORMALIZATION_MAX,
   RiskInput,
@@ -326,5 +329,114 @@ describe('Edge cases', () => {
     for (const [key, val] of Object.entries(NORMALIZATION_MAX)) {
       assert.ok(val > 0, `NORMALIZATION_MAX.${key} must be positive, got ${val}`);
     }
+  });
+});
+
+describe('calculateThresholdSignal()', () => {
+  it('detects no exceedance for low rainfall', () => {
+    const signal = calculateThresholdSignal(10, 20);
+    assert.equal(signal.exceeded, false);
+    assert.ok(signal.max_ratio < 1.0);
+    assert.ok(signal.citation.includes('43.26'));
+  });
+
+  it('detects 24h threshold exceedance when rainfall_24h exceeds 43.26mm', () => {
+    const signal = calculateThresholdSignal(60, 60);
+    assert.equal(signal.exceeded, true);
+    assert.equal(signal.critical_duration_days, 1);
+    assert.ok(signal.ratios.d1 > 1.0);
+  });
+
+  it('detects 3-day threshold exceedance when cumulative rainfall exceeds 55.1mm', () => {
+    const signal = calculateThresholdSignal(20, 80);
+    assert.equal(signal.exceeded, true);
+    assert.equal(signal.critical_duration_days, 3);
+    assert.ok(signal.ratios.d3 > 1.0);
+  });
+});
+
+describe('calculateARI()', () => {
+  it('returns 0 for zero rainfall', () => {
+    assert.equal(calculateARI(0, 0), 0);
+  });
+
+  it('calculates weighted exponential decay from daily history', () => {
+    const history = [50, 40, 30, 20, 10, 5, 0];
+    const ari = calculateARI(50, 90, 155, history);
+    assert.ok(ari > 50, `ARI should exceed daily rainfall due to antecedent terms, got ${ari}`);
+  });
+
+  it('reconstructs ARI from aggregates when history array is omitted', () => {
+    const ari = calculateARI(40, 100, 180);
+    assert.ok(ari > 40);
+  });
+});
+
+describe('composeHybridRisk()', () => {
+  it('enforces conservative safety floor when threshold is heavily exceeded', () => {
+    const mlResult = {
+      risk_score: 0.25,
+      risk_level: 'LOW' as const,
+      contributing_factors: [],
+      engine: 'ml' as const,
+      is_probability: false,
+      timestamp: new Date().toISOString(),
+    };
+
+    const detResult = {
+      risk_score: 0.75,
+      risk_level: 'HIGH' as const,
+      contributing_factors: [],
+      engine: 'deterministic' as const,
+      is_probability: false,
+      timestamp: new Date().toISOString(),
+    };
+
+    const thresholdSignal = {
+      exceeded: true,
+      max_ratio: 2.2, // Heavy exceedance
+      critical_duration_days: 1,
+      ratios: { d1: 2.2, d3: 1.5, d7: 1.2 },
+      citation: 'Sikkim threshold test',
+    };
+
+    const hybrid = composeHybridRisk(mlResult, detResult, thresholdSignal);
+    assert.equal(hybrid.safety_override, true);
+    assert.equal(hybrid.risk_level, 'SEVERE');
+    assert.ok(hybrid.risk_score >= 0.81);
+    assert.equal(hybrid.ml_vs_deterministic_delta, 0.5);
+  });
+
+  it('preserves ML level when threshold is not in severe exceedance', () => {
+    const mlResult = {
+      risk_score: 0.70,
+      risk_level: 'HIGH' as const,
+      contributing_factors: [],
+      engine: 'ml' as const,
+      is_probability: false,
+      timestamp: new Date().toISOString(),
+    };
+
+    const detResult = {
+      risk_score: 0.65,
+      risk_level: 'HIGH' as const,
+      contributing_factors: [],
+      engine: 'deterministic' as const,
+      is_probability: false,
+      timestamp: new Date().toISOString(),
+    };
+
+    const thresholdSignal = {
+      exceeded: false,
+      max_ratio: 0.5,
+      critical_duration_days: 1,
+      ratios: { d1: 0.5, d3: 0.4, d7: 0.3 },
+      citation: 'Sikkim threshold test',
+    };
+
+    const hybrid = composeHybridRisk(mlResult, detResult, thresholdSignal);
+    assert.equal(hybrid.safety_override, false);
+    assert.equal(hybrid.risk_level, 'HIGH');
+    assert.equal(hybrid.risk_score, 0.70);
   });
 });

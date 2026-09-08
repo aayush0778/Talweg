@@ -1,4 +1,13 @@
-import { FactorContribution, RiskLevel } from '../services/riskEngine';
+import { FactorContribution, RiskLevel, ThresholdSignal, UncertaintyInfo, RiskResult } from '../services/riskEngine';
+
+export { ThresholdSignal, UncertaintyInfo, RiskResult };
+
+export interface ModelProvenanceInfo {
+  model_role: string;
+  model_version: string;
+  is_probability: boolean;
+  artifact_hash?: string | null;
+}
 
 export interface GeoJsonGeometry {
   type: 'Polygon' | 'MultiPolygon' | 'Point' | 'LineString' | string;
@@ -71,10 +80,20 @@ export interface RiskPredictionResponse {
   risk_score: number;
   risk_level: RiskLevel;
   contributing_factors: FactorContribution[];
-  engine: 'deterministic' | 'ml';
+  engine: 'deterministic' | 'ml' | 'hybrid';
   timestamp: string;
   inputs_used: RiskPredictionInputs;
   data_source: string;
+  model_version?: string;
+  model_role?: string;
+  is_probability?: boolean;
+  fallback_used?: boolean;
+  fallback_reason?: string | null;
+  data_quality_score?: number;
+  ml_vs_deterministic_delta?: number | null;
+  threshold_signal?: ThresholdSignal;
+  safety_override?: boolean;
+  safety_reason?: string;
 }
 
 export interface AlertResponse {
@@ -146,7 +165,7 @@ export interface HistoricalReplayInputs {
 export interface HistoricalReplayTalweg {
   risk_score: number;
   risk_level: RiskLevel;
-  engine: 'deterministic' | 'ml';
+  engine: 'deterministic' | 'ml' | 'hybrid';
   flagged: boolean;
   contributing_factors: Array<{ factor: string; contribution: number }>;
 }

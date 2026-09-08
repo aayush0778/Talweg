@@ -1,11 +1,13 @@
+export type { RiskTier } from './riskTheme';
 import { RiskLevel } from '../types/api';
+import { RISK_TIERS, FALLBACK_RISK_COLOR } from './riskTheme';
 
 export const RISK_COLORS: Record<RiskLevel | 'NONE', string> = {
-  LOW: '#22c55e',
-  MODERATE: '#eab308',
-  HIGH: '#f97316',
-  SEVERE: '#dc2626',
-  NONE: '#64748b',
+  LOW: RISK_TIERS.LOW.hex,
+  MODERATE: RISK_TIERS.MODERATE.hex,
+  HIGH: RISK_TIERS.HIGH.hex,
+  SEVERE: RISK_TIERS.SEVERE.hex,
+  NONE: FALLBACK_RISK_COLOR,
 } as const;
 
 export function getRiskColor(level: RiskLevel | null | undefined): string {
@@ -24,38 +26,38 @@ export function getRiskBadgeClasses(level: RiskLevel | null | undefined): {
   switch (level) {
     case 'LOW':
       return {
-        bg: 'bg-emerald-950/70',
-        text: 'text-emerald-400',
-        border: 'border-emerald-700/50',
-        dot: 'bg-emerald-500',
+        bg: 'bg-risk-low-bg',
+        text: 'text-risk-low',
+        border: 'border-[#79c8a5]/50',
+        dot: 'bg-[#79c8a5]',
       };
     case 'MODERATE':
       return {
-        bg: 'bg-amber-950/70',
-        text: 'text-amber-400',
-        border: 'border-amber-700/50',
-        dot: 'bg-amber-500',
+        bg: 'bg-risk-moderate-bg',
+        text: 'text-risk-moderate',
+        border: 'border-[#d8c56a]/50',
+        dot: 'bg-[#d8c56a]',
       };
     case 'HIGH':
       return {
-        bg: 'bg-orange-950/70',
-        text: 'text-orange-400',
-        border: 'border-orange-700/50',
-        dot: 'bg-orange-500',
+        bg: 'bg-risk-high-bg',
+        text: 'text-risk-high',
+        border: 'border-[#e49a62]/50',
+        dot: 'bg-[#e49a62]',
       };
     case 'SEVERE':
       return {
-        bg: 'bg-rose-950/70',
-        text: 'text-rose-400',
-        border: 'border-rose-700/50',
-        dot: 'bg-rose-500',
+        bg: 'bg-risk-severe-bg',
+        text: 'text-risk-severe',
+        border: 'border-[#ef7070]/50',
+        dot: 'bg-[#ef7070]',
       };
     default:
       return {
-        bg: 'bg-slate-800/80',
-        text: 'text-slate-400',
-        border: 'border-slate-700/50',
-        dot: 'bg-slate-500',
+        bg: 'bg-ink-800/80',
+        text: 'text-paper-400',
+        border: 'border-line-subtle',
+        dot: 'bg-paper-400',
       };
   }
 }
@@ -63,4 +65,5 @@ export function getRiskBadgeClasses(level: RiskLevel | null | undefined): {
 export function getRiskBgColor(level: RiskLevel | null | undefined): string {
   return getRiskBadgeClasses(level).bg;
 }
+
 

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { X, TriangleAlert, CheckCircle2, Info } from 'lucide-react';
 import { replayHistoricalEvent } from '../lib/apiClient';
 import { HistoricalReplayResponse } from '../types/api';
 import { ProvenanceBadge } from './ProvenanceBadge';
 import { getRiskColor } from '../lib/riskColors';
-import { StatusMessage } from './StatusMessage';
+import { PanelLoading, PanelError } from './PanelStates';
 import { HistoricalTimeline } from './HistoricalTimeline';
 import { ConceptualMotionModal } from './ConceptualMotionModal';
 import { HistoricalEvidencePanel } from './HistoricalEvidencePanel';
@@ -48,231 +49,200 @@ export const HistoricalReplayModal: React.FC<HistoricalReplayModalProps> = ({
   }, [id]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-gray-900 border border-slate-700 shadow-2xl rounded-xl w-full max-w-[600px] max-h-[90vh] flex flex-col overflow-hidden text-slate-200">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/80 backdrop-blur-sm p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Historical Event Replay"
+    >
+      <div className="bg-ink-900 border border-line-strong shadow-drawer rounded-xl w-full max-w-[600px] max-h-[90vh] flex flex-col overflow-hidden text-paper-200">
         {/* Header section */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-700/80 bg-slate-900/50">
-          <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-            Historical Event Replay
+        <div className="flex items-center justify-between p-4 border-b border-line-subtle bg-ink-950/60">
+          <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-paper-50 flex items-center gap-2">
+            Historical Incident Replay
           </h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-1 rounded-md transition-colors"
-            title="Close"
+            className="text-paper-400 hover:text-paper-100 p-1 rounded hover:bg-ink-800 transition-colors cursor-pointer"
+            title="Close dialog"
+            aria-label="Close dialog"
           >
-            ✕
+            <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 
         {/* Content Section */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-5">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {loading ? (
             <div className="py-8">
-              <StatusMessage type="loading" message="Loading replay data..." />
+              <PanelLoading message="Reconstructing historical inputs..." />
             </div>
           ) : error ? (
             <div className="py-8">
-              <StatusMessage type="error" title="Replay Failed" message={error.message} />
+              <PanelError title="Replay Failed" message={error.message} />
             </div>
           ) : data ? (
             <>
               {/* Validation Banner */}
               {data.validation.status === 'synthetic_demo' && (
-                <div className="px-4 py-2.5 bg-amber-950/40 border border-amber-900/60 rounded-lg text-amber-400 text-xs font-medium flex items-start gap-2 shadow-inner">
-                  <span>⚠</span>
-                  <span>Representative/synthetic scenario — not recorded historical weather. {data.validation.caveat}</span>
+                <div className="px-3.5 py-2.5 bg-silt-900/40 border border-silt-700/60 rounded-md text-silt-300 text-xs flex items-start gap-2">
+                  <TriangleAlert className="w-4 h-4 shrink-0 text-silt-400 mt-0.5" aria-hidden="true" />
+                  <span>Representative scenario — not recorded historical weather. {data.validation.caveat}</span>
                 </div>
               )}
               {data.validation.status === 'real_replay' && (
-                <div className="px-4 py-2.5 bg-emerald-950/40 border border-emerald-900/60 rounded-lg text-emerald-400 text-xs font-medium flex items-start gap-2 shadow-inner">
-                  <span>✓</span>
+                <div className="px-3.5 py-2.5 bg-lichen-950/40 border border-lichen-700/60 rounded-md text-lichen-300 text-xs flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-lichen-400 mt-0.5" aria-hidden="true" />
                   <span>Real historical data replay. {data.validation.caveat}</span>
                 </div>
               )}
               {data.validation.status === 'methodology_only' && (
-                <div className="px-4 py-2.5 bg-slate-800/40 border border-slate-700/60 rounded-lg text-slate-300 text-xs flex items-start gap-2 shadow-inner">
-                  <span>ℹ</span>
+                <div className="px-3.5 py-2.5 bg-ink-950/60 border border-line-subtle rounded-md text-paper-300 text-xs flex items-start gap-2">
+                  <Info className="w-4 h-4 shrink-0 text-paper-400 mt-0.5" aria-hidden="true" />
                   <span>Methodology demonstration. {data.validation.caveat}</span>
                 </div>
               )}
 
               {/* Event Info */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-start">
-                  <h3 className="text-sm font-semibold text-white uppercase tracking-wider">
-                    {data.event.date}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-mono font-semibold text-paper-400 uppercase tracking-wider">
+                    Incident Parameters
                   </h3>
                   <ProvenanceBadge type={data.event.source.type} note={data.event.source.note} />
                 </div>
-                <div className="text-xs text-slate-400 font-mono">
-                  {data.event.latitude.toFixed(4)}°, {data.event.longitude.toFixed(4)}°
+                <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+                  <div className="p-2.5 rounded bg-ink-950/70 border border-line-subtle">
+                    <span className="text-paper-400 block text-[10px] font-mono">Date</span>
+                    <span className="font-mono text-paper-100">{data.event.date}</span>
+                  </div>
+                  <div className="p-2.5 rounded bg-ink-950/70 border border-line-subtle">
+                    <span className="text-paper-400 block text-[10px] font-mono">Classification</span>
+                    <span className="font-mono text-paper-100">{data.event.category}</span>
+                  </div>
                 </div>
-                <div className="text-xs">
-                  <span className="inline-block px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-300 mr-2">
-                    {data.event.category}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-300 leading-relaxed mt-2">
-                  {data.event.description}
-                </p>
+                {data.event.description && (
+                  <p className="text-xs text-paper-300 leading-normal pt-1">{data.event.description}</p>
+                )}
               </div>
 
               {/* Conditions Snapshot */}
-              <div className="space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-800 pb-1">
-                  Conditions Snapshot (Inputs)
+              <div className="space-y-1.5">
+                <h3 className="text-xs font-mono font-semibold text-paper-400 uppercase tracking-wider">
+                  Reconstructed Environmental Inputs
                 </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {[
-                    { label: '24h Rain', val: data.inputs.rainfall_24h, unit: 'mm' },
-                    { label: '3d Rain', val: data.inputs.rainfall_3d, unit: 'mm' },
-                    { label: '7d Rain', val: data.inputs.rainfall_7d, unit: 'mm' },
-                    { label: 'Soil Moist', val: data.inputs.soil_moisture, unit: '%', format: (v: number) => Math.round(v * 100) },
-                    { label: 'Slope', val: data.inputs.slope, unit: '°' },
-                    { label: 'Hist. Density', val: data.inputs.historical_density, unit: '' },
-                  ].map((item, idx) => (
-                    <div key={idx} className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800 flex flex-col gap-1.5 shadow-sm">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[10px] text-slate-400 uppercase tracking-wide">{item.label}</span>
-                        <ProvenanceBadge type={item.val.provenance.type} />
-                      </div>
-                      <div className="text-base font-semibold text-white">
-                        {item.val.value !== null ? (
-                          <>
-                            {item.format ? item.format(item.val.value) : item.val.value}
-                            {item.unit && <span className="text-[10px] text-slate-400 ml-1 font-normal">{item.unit}</span>}
-                          </>
-                        ) : '—'}
-                      </div>
-                    </div>
-                  ))}
+                <div className="grid grid-cols-3 gap-2 text-xs">
+                  <div className="p-2.5 rounded bg-ink-950/70 border border-line-subtle text-center">
+                    <span className="text-paper-400 block text-[10px] font-mono">24h Rain</span>
+                    <span className="font-mono font-bold text-paper-50 tabular-nums">
+                      {data.inputs.rainfall_24h.value ?? '—'} mm
+                    </span>
+                  </div>
+                  <div className="p-2.5 rounded bg-ink-950/70 border border-line-subtle text-center">
+                    <span className="text-paper-400 block text-[10px] font-mono">3d Rain</span>
+                    <span className="font-mono font-bold text-paper-50 tabular-nums">
+                      {data.inputs.rainfall_3d.value ?? '—'} mm
+                    </span>
+                  </div>
+                  <div className="p-2.5 rounded bg-ink-950/70 border border-line-subtle text-center">
+                    <span className="text-paper-400 block text-[10px] font-mono">Soil Saturation</span>
+                    <span className="font-mono font-bold text-paper-50 tabular-nums">
+                      {data.inputs.soil_moisture.value !== null
+                        ? `${Math.round(data.inputs.soil_moisture.value * 100)}%`
+                        : '—'}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* TALWEG Assessment */}
-              <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 shadow-inner flex flex-col sm:flex-row gap-6">
-                <div className="flex flex-col gap-2 flex-1">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    TALWEG Assessment
+              {/* Assessment Card */}
+              <div className="p-4 rounded-lg bg-ink-950 border border-line-strong space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono font-semibold uppercase tracking-wider text-paper-400">
+                    TALWEG Assessment at Event Time
                   </span>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-black text-white tracking-tight">
-                      {Math.round(data.talweg.risk_score * 100)}
-                    </span>
-                    <span className="text-sm font-semibold text-slate-500">/ 100</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span 
-                      className="px-2 py-0.5 rounded text-xs font-bold uppercase"
-                      style={{ backgroundColor: `${getRiskColor(data.talweg.risk_level)}20`, color: getRiskColor(data.talweg.risk_level) }}
-                    >
-                      {data.talweg.risk_level}
-                    </span>
-                    <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px] font-mono border border-slate-700">
-                      Engine: {data.talweg.engine}
-                    </span>
-                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono border bg-ink-900 border-line-subtle text-paper-300">
+                    {data.talweg.engine === 'hybrid'
+                      ? 'Hybrid Safety Floor'
+                      : data.talweg.engine === 'ml'
+                      ? 'ML Surrogate'
+                      : 'Deterministic'}
+                  </span>
                 </div>
-                
-                <div className="flex-1 flex items-center justify-center p-4 bg-slate-900/50 rounded-lg border border-slate-800/80">
-                  {data.talweg.flagged ? (
-                    <div className="text-center">
-                      <div className="text-emerald-400 font-bold text-lg mb-1 tracking-wide">WOULD HAVE FLAGGED: YES</div>
-                      <div className="text-xs text-slate-400">System correctly identifies risk</div>
-                    </div>
-                  ) : (
-                    <div className="text-center">
-                      <div className="text-slate-500 font-bold text-lg mb-1 tracking-wide">WOULD HAVE FLAGGED: NO</div>
-                      <div className="text-xs text-slate-600">Risk did not meet threshold</div>
-                    </div>
-                  )}
+
+                <div className="flex items-baseline gap-3">
+                  <span
+                    className="text-3xl font-mono font-bold tabular-nums"
+                    style={{ color: getRiskColor(data.talweg.risk_level) }}
+                  >
+                    {(data.talweg.risk_score * 100).toFixed(0)}
+                  </span>
+                  <span className="text-xs font-mono text-paper-400">/ 100 index</span>
+                  <span className="text-xs font-mono font-bold text-paper-100 uppercase">
+                    {data.talweg.risk_level} TIER
+                  </span>
+                  <span
+                    className={`ml-auto text-xs font-mono font-bold px-2 py-0.5 rounded border ${
+                      data.talweg.flagged
+                        ? 'bg-lichen-700/20 text-lichen-300 border-lichen-600/40'
+                        : 'bg-ink-800 text-paper-400 border-line-subtle'
+                    }`}
+                  >
+                    WOULD HAVE FLAGGED: {data.talweg.flagged ? 'YES' : 'NO'}
+                  </span>
                 </div>
               </div>
 
-              {/* Risk Escalation Timeline */}
-              <div className="space-y-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-800 pb-1">
-                  Reconstructed Escalation Timeline
-                </h3>
-                <HistoricalTimeline
-                  points={[
-                    { label: 'T-72h', risk_score: Math.max(0.12, Math.round(data.talweg.risk_score * 40) / 100), risk_level: 'LOW' },
-                    { label: 'T-48h', risk_score: Math.max(0.28, Math.round(data.talweg.risk_score * 65) / 100), risk_level: 'MODERATE' },
-                    { label: 'T-24h', risk_score: Math.max(0.45, Math.round(data.talweg.risk_score * 85) / 100), risk_level: data.talweg.risk_score >= 0.7 ? 'HIGH' : 'MODERATE' },
-                    { label: 'EVENT', risk_score: data.talweg.risk_score, risk_level: data.talweg.risk_level },
-                  ]}
-                  isSynthetic={data.validation.status === 'synthetic_demo'}
-                />
-              </div>
+              {/* Escalation Timeline */}
+              <HistoricalTimeline
+                points={[
+                  { label: 'T-72h', risk_score: Math.max(0.15, data.talweg.risk_score * 0.4), risk_level: 'LOW' },
+                  { label: 'T-48h', risk_score: Math.max(0.25, data.talweg.risk_score * 0.65), risk_level: 'MODERATE' },
+                  { label: 'T-24h', risk_score: Math.max(0.45, data.talweg.risk_score * 0.85), risk_level: 'HIGH' },
+                  { label: 'EVENT', risk_score: data.talweg.risk_score, risk_level: data.talweg.risk_level },
+                ]}
+                isSynthetic={data.validation.status === 'synthetic_demo'}
+              />
 
-              {/* Factor Breakdown */}
-              <div className="space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-800 pb-1">
-                  Contributing Factors
-                </h3>
-                <div className="space-y-2">
-                  {[...data.talweg.contributing_factors].sort((a, b) => b.contribution - a.contribution).map((factor, idx) => (
-                    <div key={idx} className="flex flex-col gap-1 text-xs">
-                      <div className="flex justify-between text-slate-300">
-                        <span className="capitalize">{factor.factor.replace(/_/g, ' ')}</span>
-                        <span className="font-mono">{(factor.contribution * 100).toFixed(1)}%</span>
-                      </div>
-                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-indigo-500/80 rounded-full" 
-                          style={{ width: `${Math.max(0, factor.contribution * 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Action Buttons: Progression, Evidence & Motion */}
-              <div className="pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2.5">
+              {/* Replay Actions */}
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  onClick={() => setShowMotion(true)}
+                  className="flex-1 py-2 px-3 rounded-md bg-ink-800 hover:bg-ink-700 text-paper-200 border border-line-strong text-xs font-mono font-medium transition cursor-pointer"
+                >
+                  Conceptual Motion
+                </button>
+                <button
+                  onClick={() => setShowEvidence(true)}
+                  className="flex-1 py-2 px-3 rounded-md bg-ink-800 hover:bg-ink-700 text-paper-200 border border-line-strong text-xs font-mono font-medium transition cursor-pointer"
+                >
+                  Evidence Archive
+                </button>
                 {onLaunchProgression && (
                   <button
                     onClick={() => {
-                      onLaunchProgression(data.id);
                       onClose();
+                      onLaunchProgression(id);
                     }}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-950/60 transition cursor-pointer"
+                    className="flex-1 py-2 px-3 rounded-md bg-lichen-500 hover:bg-lichen-400 text-ink-950 text-xs font-mono font-bold transition cursor-pointer"
                   >
-                    <span>🌊</span>
-                    <span>Simulate Terrain Hazard Progression</span>
+                    Runout Simulation
                   </button>
                 )}
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowEvidence(true)}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition cursor-pointer"
-                  >
-                    <span>📸</span>
-                    <span>Historical Evidence</span>
-                  </button>
-                  <button
-                    onClick={() => setShowMotion(true)}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-amber-950/60 hover:bg-amber-900 text-amber-300 border border-amber-800/80 transition cursor-pointer"
-                  >
-                    <span>⚡</span>
-                    <span>Conceptual Motion</span>
-                  </button>
-                </div>
               </div>
-
-              {showEvidence && (
-                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/70 p-4">
-                  <div className="max-w-md w-full">
-                    <HistoricalEvidencePanel eventId={data.id} onClose={() => setShowEvidence(false)} />
-                  </div>
-                </div>
-              )}
 
               {showMotion && (
                 <ConceptualMotionModal
                   riskLevel={data.talweg.risk_level}
                   slope={data.inputs.slope.value ?? 35}
                   onClose={() => setShowMotion(false)}
+                />
+              )}
+
+              {showEvidence && (
+                <HistoricalEvidencePanel
+                  eventId={data.event.description || id}
+                  onClose={() => setShowEvidence(false)}
                 />
               )}
             </>

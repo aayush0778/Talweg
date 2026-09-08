@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BellRing, ChevronUp, ChevronDown } from 'lucide-react';
 import type { AlertResponse, RiskLevel } from '../types/api';
 import { fetchAlerts } from '../lib/apiClient';
 import { formatObsTimestamp } from '../lib/format';
@@ -8,16 +9,16 @@ interface AlertHistoryProps {
 }
 
 const severityBadgeStyles: Record<RiskLevel, string> = {
-  LOW: 'bg-emerald-950/60 border-emerald-800/60 text-emerald-300',
-  MODERATE: 'bg-amber-950/60 border-amber-800/60 text-amber-300',
-  HIGH: 'bg-orange-950/60 border-orange-800/60 text-orange-300',
-  SEVERE: 'bg-rose-950/60 border-rose-800/60 text-rose-300',
+  LOW: 'bg-risk-low/15 border-risk-low/40 text-risk-low',
+  MODERATE: 'bg-risk-moderate/15 border-risk-moderate/40 text-risk-moderate',
+  HIGH: 'bg-risk-high/15 border-risk-high/40 text-risk-high',
+  SEVERE: 'bg-risk-severe/15 border-risk-severe/40 text-risk-severe',
 };
 
 const statusBadgeStyles: Record<string, string> = {
-  active: 'bg-rose-950/40 text-rose-300 border-rose-800/50',
-  acknowledged: 'bg-amber-950/40 text-amber-300 border-amber-800/50',
-  resolved: 'bg-emerald-950/40 text-emerald-300 border-emerald-800/50',
+  active: 'bg-risk-severe/15 text-risk-severe border-risk-severe/40',
+  acknowledged: 'bg-risk-moderate/15 text-risk-moderate border-risk-moderate/40',
+  resolved: 'bg-risk-low/15 text-risk-low border-risk-low/40',
 };
 
 export const AlertHistory: React.FC<AlertHistoryProps> = ({ zoneId }) => {
@@ -51,47 +52,51 @@ export const AlertHistory: React.FC<AlertHistoryProps> = ({ zoneId }) => {
   }, [zoneId]);
 
   return (
-    <div className="rounded-xl border border-slate-800/80 bg-slate-950/60 overflow-hidden">
+    <div className="rounded-lg border border-line-strong bg-ink-950/80 overflow-hidden">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-900/40 transition cursor-pointer"
+        className="w-full px-4 py-3 flex items-center justify-between hover:bg-ink-900/60 transition cursor-pointer"
+        aria-expanded={isOpen}
       >
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-            📜 Alert Incident Audit Log
+          <BellRing className="w-3.5 h-3.5 text-paper-400" aria-hidden="true" />
+          <span className="text-xs font-mono font-semibold uppercase tracking-wider text-paper-300">
+            Alert Incident Log
           </span>
           {alerts.length > 0 && (
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-300 font-mono">
+            <span className="text-[10px] px-1.5 py-0.2 rounded bg-ink-800 text-paper-300 font-mono border border-line-subtle">
               {alerts.length}
             </span>
           )}
         </div>
-        <span className="text-xs text-slate-400 font-mono">{isOpen ? '▲ Hide' : '▼ View'}</span>
+        <span className="text-xs text-paper-400 font-mono flex items-center gap-1">
+          <span>{isOpen ? 'Hide' : 'View'}</span>
+          {isOpen ? <ChevronUp className="w-3.5 h-3.5" aria-hidden="true" /> : <ChevronDown className="w-3.5 h-3.5" aria-hidden="true" />}
+        </span>
       </button>
 
       {isOpen && (
-        <div className="p-4 pt-1 border-t border-slate-800/60 space-y-3">
+        <div className="p-4 pt-1 border-t border-line-subtle space-y-3 bg-ink-900/30">
           {loading ? (
-            <p className="text-xs text-slate-500 py-2 text-center italic">Loading incident history...</p>
+            <p className="text-xs text-paper-400 py-2 text-center italic">Loading incident history...</p>
           ) : error ? (
-            <p className="text-xs text-rose-400 py-2">{error}</p>
+            <p className="text-xs text-risk-severe py-2">{error}</p>
           ) : alerts.length === 0 ? (
-            <div className="p-3 text-center rounded-lg bg-slate-900/30 border border-slate-800/40 text-xs text-slate-500">
+            <div className="p-3 text-center rounded bg-ink-950 border border-line-subtle text-xs text-paper-400">
               No historical alert records logged for this corridor.
             </div>
           ) : (
-            <div className="relative pl-4 space-y-3 mt-2">
-              <div className="absolute left-[7px] top-2 bottom-2 w-px bg-slate-800" />
+            <div className="relative pl-4 space-y-3 mt-2 border-l border-line-strong">
               {alerts.map((alert) => {
                 const badgeClass =
                   severityBadgeStyles[alert.severity] || severityBadgeStyles.MODERATE;
                 const statusClass =
-                  statusBadgeStyles[alert.status] || 'bg-slate-800 text-slate-300';
+                  statusBadgeStyles[alert.status] || 'bg-ink-800 text-paper-300';
 
                 return (
                   <div key={alert.id} className="relative">
-                    <div className="absolute -left-4 top-2 w-2 h-2 rounded-full bg-slate-600 border border-slate-900" />
-                    <div className="p-2.5 rounded-lg bg-slate-900/70 border border-slate-800/70 text-xs space-y-1.5">
+                    <div className="absolute -left-[21px] top-2 w-2 h-2 rounded-full bg-ink-700 border border-ink-950" />
+                    <div className="p-2.5 rounded-md bg-ink-950/70 border border-line-subtle text-xs space-y-1.5">
                       <div className="flex items-center justify-between gap-1">
                         <div className="flex items-center gap-1.5">
                           <span
@@ -105,11 +110,11 @@ export const AlertHistory: React.FC<AlertHistoryProps> = ({ zoneId }) => {
                             {alert.status}
                           </span>
                         </div>
-                        <span className="text-[10px] text-slate-500 font-mono">
+                        <span className="text-[10px] text-paper-400 font-mono">
                           {formatObsTimestamp(alert.created_at)}
                         </span>
                       </div>
-                      <p className="text-slate-300 text-[11px] leading-relaxed">{alert.message}</p>
+                      <p className="text-paper-200 text-[11px] leading-relaxed">{alert.message}</p>
                     </div>
                   </div>
                 );
