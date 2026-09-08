@@ -34,8 +34,8 @@ const DATA_SOURCES: DataSource[] = [
   {
     name: 'CHIRPS Rainfall',
     type: 'REAL',
-    description: 'Official CHIRPS daily satellite precipitation retrieved via ClimateSERV API (NASA/USAID SERVIR) for Sikkim zones',
-    records: '6 zone observations (July 25–31, 2026)',
+    description: 'Official CHIRPS daily satellite precipitation retrieved via ClimateSERV API (NASA/USAID SERVIR) for Sikkim zones (~30–45d calibration latency)',
+    records: '6 zone observations (July 25–31, 2026 satellite epoch)',
     status: 'loaded',
   },
   {

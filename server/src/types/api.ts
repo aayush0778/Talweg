@@ -58,6 +58,9 @@ export interface EnvironmentResponse {
   zone_id: string;
   zone_name: string;
   timestamp: string;
+  observation_epoch?: string;
+  latency_note?: string;
+  provenance?: DataProvenance;
   rainfall_24h: number | null;
   rainfall_3d: number | null;
   rainfall_7d: number | null;

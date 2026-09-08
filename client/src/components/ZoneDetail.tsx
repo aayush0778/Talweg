@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, FileText, MapPinned, LocateFixed, Mountain, Activity, History } from 'lucide-react';
+import { ArrowLeft, FileText, MapPinned, LocateFixed, Mountain, Activity, History, Satellite } from 'lucide-react';
 import {
   RiskZone,
   EnvironmentObservation,
@@ -16,10 +16,11 @@ import { RiskTrend } from './RiskTrend';
 import { AlertHistory } from './AlertHistory';
 import { CopilotPanel } from './CopilotPanel';
 import { RiskBadge } from './RiskBadge';
+import { ProvenanceBadge } from './ProvenanceBadge';
 import { PanelLoading, PanelEmpty, PanelError } from './PanelStates';
 import { HistoricalReplayModal } from './HistoricalReplayModal';
 import { getRiskColor } from '../lib/riskColors';
-import { scoreToPercent, formatEventDate } from '../lib/format';
+import { scoreToPercent, formatEventDate, formatObsTimestamp } from '../lib/format';
 import { openReportWindow } from '../lib/reportGenerator';
 
 interface ZoneDetailProps {
@@ -332,13 +333,27 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
 
         {/* Environmental Telemetry Grid */}
         <div className="p-4 rounded-lg bg-ink-950/80 border border-line-strong shadow-inner space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-paper-300">
-              Environmental Telemetry
-            </h3>
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-paper-300">
+                Environmental Telemetry
+              </h3>
+              <ProvenanceBadge
+                type={environment?.source === 'chirps_real' ? 'REAL' : 'SYNTHETIC'}
+                note={
+                  environment?.source === 'chirps_real'
+                    ? 'Verified NASA/USAID ClimateSERV CHIRPS Satellite Observations'
+                    : 'Representative synthetic seed data'
+                }
+              />
+            </div>
             {environment?.timestamp && (
-              <span className="text-[10px] font-mono text-paper-400">
-                Synced {environment.timestamp.slice(0, 10)}
+              <span
+                className="text-[10px] font-mono text-paper-400 flex items-center gap-1 cursor-help"
+                title="Observation acquisition epoch from NASA/USAID ClimateSERV (CHIRPS). Finalized satellite products carry an inherent 30–45d calibration latency; observation timestamps are never fabricated forward."
+              >
+                <Satellite className="w-3 h-3 text-lichen-400" aria-hidden="true" />
+                <span>Observed: {environment.timestamp.slice(0, 10)}</span>
               </span>
             )}
           </div>
@@ -406,14 +421,26 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({
             <PanelEmpty message="No telemetry observation recorded for this corridor." />
           )}
 
-          {/* Provenance note */}
-          <div className="px-3 py-1.5 rounded-md bg-ink-900 border border-line-subtle text-[11px] text-paper-400 flex items-center justify-between">
-            <span>Data provenance:</span>
-            <span className="font-mono text-monsoon-300 font-medium">
-              {environment?.source === 'chirps_real'
-                ? 'chirps_real (NASA/USAID SERVIR)'
-                : `${environment?.source || zone.data_source || 'synthetic_seed'} (demo)`}
-            </span>
+          {/* Provenance & Observation Epoch Disclosure */}
+          <div className="p-2.5 rounded-md bg-ink-900/90 border border-line-subtle text-[11px] text-paper-400 space-y-1.5">
+            <div className="flex items-center justify-between flex-wrap gap-1">
+              <span className="flex items-center gap-1.5 font-medium text-paper-300">
+                <Satellite className="w-3.5 h-3.5 text-glacier-300 shrink-0" aria-hidden="true" />
+                <span>{environment?.source === 'chirps_real' ? 'CHIRPS Satellite Baseline' : 'Telemetry Feed'}</span>
+              </span>
+              <span className="font-mono text-[10px] text-glacier-300">
+                Epoch: {environment?.timestamp ? formatObsTimestamp(environment.timestamp) : '—'}
+              </span>
+            </div>
+            {environment?.source === 'chirps_real' ? (
+              <p className="text-[10px] text-paper-400 leading-normal">
+                Precipitation is sourced from NASA/USAID ClimateSERV (<span className="text-paper-300 font-mono">CHIRPS</span> 0.05° gridded satellite-gauge fusion). High-resolution satellite products undergo an inherent 30–45 day station-calibration cycle; observation timestamps are authentic and preserved under scientific honesty protocol.
+              </p>
+            ) : (
+              <p className="text-[10px] text-paper-400 leading-normal">
+                Representative trigger-day conditions for demonstration; not recorded real-time weather.
+              </p>
+            )}
           </div>
         </div>
 

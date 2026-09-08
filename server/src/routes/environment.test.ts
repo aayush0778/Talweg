@@ -38,6 +38,9 @@ describe('GET /api/environment/:zoneId (Integration Test)', () => {
     assert.equal(env.slope, 19.6);
     assert.equal(env.source, 'chirps_real');
     assert.ok(typeof env.timestamp === 'string');
+    assert.equal(env.observation_epoch, '2026-07-31');
+    assert.equal(env.provenance, 'REAL');
+    assert.ok(env.latency_note?.includes('CHIRPS'));
   });
 
   it('returns 404 with ZONE_NOT_FOUND when zone does not exist', async () => {

@@ -63,10 +63,16 @@ router.get(
     }
 
     const obs = obsResult.rows[0];
+    const isRealChirps = obs.source === 'chirps_real';
     const response: EnvironmentResponse = {
       zone_id: obs.zone_id,
       zone_name: zoneName,
       timestamp: new Date(obs.timestamp).toISOString(),
+      observation_epoch: new Date(obs.timestamp).toISOString().slice(0, 10),
+      latency_note: isRealChirps
+        ? 'Latest finalized CHIRPS satellite observation cycle (NASA/USAID SERVIR, ~30–45d calibration latency)'
+        : undefined,
+      provenance: isRealChirps ? 'REAL' : 'SYNTHETIC',
       rainfall_24h: obs.rainfall_24h,
       rainfall_3d: obs.rainfall_3d,
       rainfall_7d: obs.rainfall_7d,

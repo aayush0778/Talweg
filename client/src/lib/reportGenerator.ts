@@ -1,6 +1,7 @@
 import type { RiskZone, RiskPredictionResponse, EnvironmentObservation, LandslideEvent, RiskLevel } from '../types/api';
 import { getResponseGuidance } from './responseGuidance';
 import { RISK_COLORS } from './riskColors';
+import { formatObsTimestamp } from './format';
 
 /**
  * Generates a print-optimized HTML document for a corridor risk assessment report.
@@ -136,7 +137,7 @@ export function generateReportHTML(
       <tr><td style="padding:6px 12px;border-bottom:1px solid #bac2bb;">Local Slope Gradient</td><td style="padding:6px 12px;border-bottom:1px solid #bac2bb;text-align:center;font-weight:600;font-family:'IBM Plex Mono',monospace;">${environment.slope ?? '—'}</td><td style="padding:6px 12px;border-bottom:1px solid #bac2bb;">degrees</td></tr>
     </tbody>
   </table>
-  <p style="font-size:10px;color:#5f6963;font-family:'IBM Plex Mono',monospace;">Data provenance: ${environment.source} | Observation timestamp: ${environment.timestamp}</p>` : '<p><em>No environmental telemetry recorded for this zone.</em></p>'}
+  <p style="font-size:10px;color:#5f6963;font-family:'IBM Plex Mono',monospace;">Observation epoch: ${formatObsTimestamp(environment.timestamp)} | Data provenance: ${environment.source === 'chirps_real' ? 'REAL (NASA/USAID ClimateSERV CHIRPS satellite baseline, ~30–45d calibration latency)' : environment.source}</p>` : '<p><em>No environmental telemetry recorded for this zone.</em></p>'}
 
   <h2>Recommended Response Actions</h2>
   <div class="guidance-box${riskLevel === 'SEVERE' ? ' severe' : ''}">
