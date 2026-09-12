@@ -61,7 +61,10 @@ async function migrate(): Promise<void> {
         continue;
       }
 
-      const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf-8');
+      // Strip UTF-8 BOM if present — Postgres rejects '\uFEFF' as a syntax error
+      const sql = fs
+        .readFileSync(path.join(migrationsDir, file), 'utf-8')
+        .replace(/^\uFEFF/, '');
 
       await client.query('BEGIN');
       try {
