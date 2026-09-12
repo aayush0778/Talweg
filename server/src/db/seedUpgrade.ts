@@ -83,7 +83,7 @@ const DATA_SOURCES: {
   {
     id: 'chirps', name: 'CHIRPS Satellite Precipitation', type: 'satellite_precipitation',
     provider: 'UCSB Climate Hazards Center / NASA SERVIR', license: 'Open (CHIRPS)',
-    update_frequency: 'daily (product); per-event ingestion in this prototype',
+    update_frequency: 'daily (product); per-event ingestion',
     spatial_resolution: '~5 km (0.05°)', temporal_resolution: 'daily', latency: 'static (ingested)',
     status: 'historical', citation: 'Funk et al., 2015 — CHIRPS',
     usage_note: 'Daily rainfall observations for verified historical replay anchors', coverage: 'Sikkim event windows',
