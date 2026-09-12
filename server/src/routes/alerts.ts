@@ -7,6 +7,28 @@ import { AlertResponse } from '../types/api';
 
 export const alertsRouter = Router();
 
+interface EnhancedAlertRow {
+  id: number;
+  zone_id: string;
+  zone_name: string;
+  severity: 'LOW' | 'MODERATE' | 'HIGH' | 'SEVERE';
+  risk_score: number;
+  message: string;
+  evidence: Record<string, unknown> | null;
+  status: 'active' | 'acknowledged' | 'resolved';
+  created_at: Date | string;
+  alert_code?: string | null;
+  trigger_summary?: string | null;
+  threshold_ratio?: number | null;
+  evidence_quality?: number | null;
+  recommended_action?: string | null;
+  expires_at?: Date | string | null;
+}
+
+function isUndefinedColumn(err: unknown): boolean {
+  return Boolean(err && typeof err === 'object' && (err as { code?: string }).code === '42703');
+}
+
 alertsRouter.get(
   '/alerts',
   asyncHandler(async (req, res) => {
@@ -18,7 +40,7 @@ alertsRouter.get(
     const { status, zone_id } = parsed.data;
     const statusParam = status === 'all' ? null : status;
 
-    const sql = `
+    const alertsWithFields = `
       SELECT
         a.id,
         a.zone_id,
@@ -28,7 +50,13 @@ alertsRouter.get(
         a.message,
         a.evidence_json AS evidence,
         a.status,
-        a.created_at
+        a.created_at,
+        a.alert_code,
+        a.trigger_summary,
+        a.threshold_ratio,
+        a.evidence_quality,
+        a.recommended_action,
+        a.expires_at
       FROM alerts a
       JOIN risk_zones z ON z.id = a.zone_id
       WHERE ($1::text IS NULL OR a.status = $1)
@@ -37,17 +65,31 @@ alertsRouter.get(
       LIMIT 200;
     `;
 
-    const { rows } = await query<{
-      id: number;
-      zone_id: string;
-      zone_name: string;
-      severity: 'LOW' | 'MODERATE' | 'HIGH' | 'SEVERE';
-      risk_score: number;
-      message: string;
-      evidence: Record<string, unknown> | null;
-      status: 'active' | 'acknowledged' | 'resolved';
-      created_at: Date | string;
-    }>(sql, [statusParam, zone_id ?? null]);
+    const legacyFields = `
+      SELECT
+        a.id, a.zone_id, z.name AS zone_name, a.severity, a.risk_score,
+        a.message, a.evidence_json AS evidence, a.status, a.created_at
+      FROM alerts a
+      JOIN risk_zones z ON z.id = a.zone_id
+      WHERE ($1::text IS NULL OR a.status = $1)
+        AND ($2::text IS NULL OR a.zone_id = $2)
+      ORDER BY a.created_at DESC
+      LIMIT 200;
+    `;
+
+    let rows: EnhancedAlertRow[];
+    try {
+      const result = await query<EnhancedAlertRow>(alertsWithFields, [statusParam, zone_id ?? null]);
+      rows = result.rows;
+    } catch (err) {
+      if (isUndefinedColumn(err)) {
+        // Migration 006 not applied — serve legacy alert shape
+        const legacy = await query<EnhancedAlertRow>(legacyFields, [statusParam, zone_id ?? null]);
+        rows = legacy.rows;
+      } else {
+        throw err;
+      }
+    }
 
     const response: AlertResponse[] = rows.map((r) => ({
       id: r.id,
@@ -59,6 +101,12 @@ alertsRouter.get(
       evidence: r.evidence,
       status: r.status,
       created_at: new Date(r.created_at).toISOString(),
+      alert_code: r.alert_code ?? null,
+      trigger_summary: r.trigger_summary ?? null,
+      threshold_ratio: r.threshold_ratio ?? null,
+      evidence_quality: r.evidence_quality ?? null,
+      recommended_action: r.recommended_action ?? null,
+      expires_at: r.expires_at ? new Date(r.expires_at).toISOString() : null,
     }));
 
     res.json(response);

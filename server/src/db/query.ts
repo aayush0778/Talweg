@@ -190,6 +190,10 @@ function getFallbackQueryResult<R extends QueryResultRow>(
 
   // Mutations (INSERT, UPDATE, DELETE for alerts)
   if (normalized.startsWith('insert into alerts')) {
+    // Final Upgrade enhanced insert (migration 006 columns) carries 11 params:
+    // [zone_id, severity, risk_score, message, evidence_json, alert_code,
+    //  trigger_summary, threshold_ratio, evidence_quality, recommended_action, expires_at]
+    const enhanced = normalized.includes('alert_code');
     const newAlert = {
       id: FALLBACK_ALERTS.length + 1,
       zone_id: String(params?.[0] || ''),
@@ -197,7 +201,13 @@ function getFallbackQueryResult<R extends QueryResultRow>(
       risk_score: Number(params?.[2] || 0.7),
       message: String(params?.[3] || ''),
       evidence_json: params?.[4] || {},
-      status: String(params?.[5] || 'active'),
+      status: 'active',
+      alert_code: enhanced ? String(params?.[5] || '') : null,
+      trigger_summary: enhanced ? String(params?.[6] || '') : null,
+      threshold_ratio: enhanced ? Number(params?.[7] ?? 0) : null,
+      evidence_quality: enhanced ? Number(params?.[8] ?? 1) : null,
+      recommended_action: enhanced ? String(params?.[9] || '') : null,
+      expires_at: enhanced ? String(params?.[10] || '') : null,
       created_at: new Date().toISOString(),
     };
     (FALLBACK_ALERTS as any).push(newAlert);

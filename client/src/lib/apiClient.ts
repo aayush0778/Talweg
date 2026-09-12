@@ -17,6 +17,16 @@ import {
   ValidationSummaryResponse,
   HazardProgressionResponse,
   ZoneForecastResponse,
+  FeatureRecord,
+  ZoneRiskResponse,
+  SimulateRequest,
+  SimulationResponse,
+  SensitivityResponse,
+  ScenarioPresetInfo,
+  DataSourcesResponse,
+  ModelInfoResponse,
+  SystemHealthResponse,
+  HistoricalEventReplayResponse,
 } from '../types/api';
 
 export class ApiClientError extends Error {
@@ -199,5 +209,51 @@ export function fetchZonePredictiveRunout(zoneId: string): Promise<HazardProgres
 export function fetchZoneForecast(zoneId: string, rainfall24h?: number | null): Promise<ZoneForecastResponse> {
   const query = rainfall24h != null ? `?rainfall_24h=${encodeURIComponent(rainfall24h)}` : '';
   return apiGet<ZoneForecastResponse>(`/api/forecast/${encodeURIComponent(zoneId)}${query}`);
+}
+
+// ===================== FINAL UPGRADE ENDPOINTS (SIH26001) =====================
+
+export function fetchZoneRisk(zoneId: string): Promise<ZoneRiskResponse> {
+  return apiGet<ZoneRiskResponse>(`/api/zones/${encodeURIComponent(zoneId)}/risk`);
+}
+
+export function fetchZoneFeatures(zoneId: string): Promise<FeatureRecord> {
+  return apiGet<FeatureRecord>(`/api/zones/${encodeURIComponent(zoneId)}/features`);
+}
+
+export function runSimulation(req: SimulateRequest): Promise<SimulationResponse> {
+  return apiPost<SimulationResponse>('/api/simulate', req);
+}
+
+export function runSensitivity(zoneId: string, nRuns?: number, seed?: number): Promise<SensitivityResponse> {
+  return apiPost<SensitivityResponse>('/api/simulate/sensitivity', {
+    zone_id: zoneId,
+    ...(nRuns !== undefined ? { n_runs: nRuns } : {}),
+    ...(seed !== undefined ? { seed } : {}),
+  });
+}
+
+export function fetchScenarioPresets(): Promise<{ presets: ScenarioPresetInfo[] }> {
+  return apiGet<{ presets: ScenarioPresetInfo[] }>('/api/simulations/presets');
+}
+
+export function fetchDataSources(): Promise<DataSourcesResponse> {
+  return apiGet<DataSourcesResponse>('/api/data-sources');
+}
+
+export function fetchModelInfo(): Promise<ModelInfoResponse> {
+  return apiGet<ModelInfoResponse>('/api/model');
+}
+
+export function fetchSystemHealth(): Promise<SystemHealthResponse> {
+  return apiGet<SystemHealthResponse>('/api/system-health');
+}
+
+export function fetchHistoricalEvents(): Promise<HistoricalReplayListItem[]> {
+  return apiGet<HistoricalReplayListItem[]>('/api/historical-events');
+}
+
+export function replayHistoricalEventWithTimeline(id: string): Promise<HistoricalEventReplayResponse> {
+  return apiGet<HistoricalEventReplayResponse>(`/api/historical-events/${encodeURIComponent(id)}/replay`);
 }
 

@@ -3,6 +3,7 @@ import path from 'path';
 import { pool } from './index';
 import { BACKTEST_EVENTS } from '../services/backtestScenarios';
 import { REAL_REPLAY_RECORD } from '../services/historicalReplay';
+import { seedFinalUpgrade } from './seedUpgrade';
 
 /**
  * Seed runner — loads server/seeds/seed.sql into the database.
@@ -131,6 +132,18 @@ async function seed(): Promise<void> {
           ]
         );
       }
+    }
+
+    // Final Upgrade tables (data_sources, rainfall_observations, soil_observations,
+    // terrain_features) — additive and failure-tolerant when migration 006 hasn't run.
+    const upgradeExists = await client.query(
+      `SELECT to_regclass('rainfall_observations') as exists`
+    );
+    if (upgradeExists.rows[0].exists) {
+      console.log('[seed] Seeding Final Upgrade tables...');
+      await seedFinalUpgrade(client);
+    } else {
+      console.warn('[seed] Final Upgrade tables missing — run "npm run migrate" first (skipping).');
     }
 
     await client.query('COMMIT');

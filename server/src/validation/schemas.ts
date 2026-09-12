@@ -95,6 +95,59 @@ export const copilotBodySchema = z
   })
   .strict();
 
+// ----- Final Upgrade schemas -----
+
+export const predictBodySchema = z
+  .object({
+    zone_id: idSchema,
+  })
+  .strict();
+
+export const simulateBodySchema = z
+  .object({
+    zone_id: idSchema,
+    preset: z
+      .enum([
+        'baseline',
+        'rainfall_plus_25',
+        'rainfall_plus_50',
+        'rainfall_plus_100',
+        'sustained_rainfall',
+        'high_antecedent',
+        'wet_soil',
+        'steep_slope',
+        'custom',
+      ])
+      .optional()
+      .default('custom'),
+    baseline: z.boolean().optional(),
+    overrides: z
+      .object({
+        rainfall_24h: z.number().min(0).max(1000).optional(),
+        rainfall_3d: z.number().min(0).max(2500).optional(),
+        rainfall_5d: z.number().min(0).max(5000).optional(),
+        rainfall_7d: z.number().min(0).max(7000).optional(),
+        soil_moisture: z.number().min(0).max(1).optional(),
+        slope: z.number().min(0).max(90).optional(),
+        historical_density: z.number().int().min(0).max(1000).optional(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
+export const sensitivityBodySchema = z
+  .object({
+    zone_id: idSchema,
+    n_runs: z.number().int().min(2).max(200).optional(),
+    seed: z.number().int().optional(),
+  })
+  .strict();
+
+export type PredictBodyInput = z.infer<typeof predictBodySchema>;
+export type SimulateBodyInput = z.infer<typeof simulateBodySchema>;
+export type SensitivityBodyInput = z.infer<typeof sensitivityBodySchema>;
+
 export type RiskBodyInput = z.infer<typeof riskBodySchema>;
 export type EventsQueryInput = z.infer<typeof eventsQuerySchema>;
 export type ZonesQueryInput = z.infer<typeof zonesQuerySchema>;

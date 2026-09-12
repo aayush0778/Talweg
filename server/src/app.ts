@@ -12,6 +12,7 @@ import { copilotRouter } from './routes/copilot';
 import modelValidationRouter from './routes/modelValidation';
 import historicalReplaysRouter from './routes/historicalReplays';
 import weatherForecastRouter from './routes/weatherForecast';
+import upgradeRouter from './routes/upgrade';
 
 /**
  * Express application factory.
@@ -37,6 +38,8 @@ export function createApp(): Express {
   app.use('/api', modelValidationRouter);
   app.use('/api', historicalReplaysRouter);
   app.use('/api', weatherForecastRouter);
+  // Final Upgrade (SIH26001) — spec-conformant endpoints (additive)
+  app.use('/api', upgradeRouter);
 
   // --- Centralized Error Handling (must be registered last) ---
   app.use(errorHandler);

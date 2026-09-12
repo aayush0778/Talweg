@@ -15,13 +15,13 @@
   --font-sans: "IBM Plex Sans", sans-serif;
   --font-mono: "IBM Plex Mono", monospace;
 
-  /* Basalt / field-console surfaces */
-  --color-ink-950: #101417;
-  --color-ink-900: #171d20;
-  --color-ink-850: #1d2528;
-  --color-ink-800: #263034;
-  --color-ink-750: #303b3f;
-  --color-ink-700: #405054;
+  /* Basalt / field-console surfaces (pitch-black console) */
+  --color-ink-950: #060708;
+  --color-ink-900: #0c0e10;
+  --color-ink-850: #121517;
+  --color-ink-800: #191d20;
+  --color-ink-750: #242b2f;
+  --color-ink-700: #3b484d;
 
   /* Text */
   --color-paper-50: #f3f1e8;

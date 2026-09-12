@@ -8,6 +8,11 @@ interface HeaderProps {
   healthLoading: boolean;
   healthError: Error | null;
   onOpenShortcuts?: () => void;
+  /**
+   * Embedded inside the dashboard shell (which already renders the Talweg
+   * brand + navigation): hides the brand block and renders a slim status row.
+   */
+  embedded?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -15,8 +20,12 @@ export const Header: React.FC<HeaderProps> = ({
   healthLoading,
   healthError,
   onOpenShortcuts,
+  embedded = false,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // Lifted so the header can rise above the zone sidebar while the
+  // pipeline panel is open (the panel would otherwise paint behind it).
+  const [pipelineOpen, setPipelineOpen] = useState(false);
   const isOk = health?.status === 'ok' && health?.database === 'connected';
 
   return (
@@ -29,8 +38,17 @@ export const Header: React.FC<HeaderProps> = ({
         Skip to main content
       </a>
 
-      <header className="h-14 md:h-16 px-4 md:px-6 bg-ink-900/95 backdrop-blur-md border-b border-line-subtle flex items-center justify-between z-20 shrink-0">
-        {/* Left: Geometric mark + Wordmark */}
+      <header
+        className={`${
+          embedded
+            ? 'h-11 border-t border-line-subtle'
+            : 'h-14 md:h-16'
+        } px-4 md:px-6 bg-ink-900/95 backdrop-blur-md border-b border-line-subtle flex items-center justify-between ${
+          pipelineOpen ? 'z-[60]' : 'z-20'
+        } shrink-0 transition-[height]`}
+      >
+        {/* Left: Geometric mark + Wordmark (hidden in embedded mode — the shell owns branding) */}
+        {!embedded && (
         <div className="flex items-center gap-3">
           <div
             className="w-8 h-8 rounded-md bg-ink-800 border border-line-strong flex items-center justify-center shrink-0 p-1"
@@ -59,6 +77,10 @@ export const Header: React.FC<HeaderProps> = ({
             </p>
           </div>
         </div>
+        )}
+        {embedded && <div className="flex items-center gap-2 text-[10px] font-mono text-paper-400 tracking-[0.08em] uppercase">
+          <span className="hidden sm:inline">MAP WORKSPACE</span>
+        </div>}
 
         {/* Desktop Header Actions */}
         <div className="hidden md:flex items-center space-x-3">
@@ -77,7 +99,7 @@ export const Header: React.FC<HeaderProps> = ({
           )}
 
           {/* Interactive Data Source & Pipeline Dashboard */}
-          <DataSourcePanel health={health} />
+          <DataSourcePanel health={health} onOpenChange={setPipelineOpen} />
 
           {/* Live System Health Badge */}
           <div
@@ -117,7 +139,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Mobile Header Menu Button */}
         <div className="flex items-center md:hidden gap-2">
-          <DataSourcePanel health={health} />
+          <DataSourcePanel health={health} onOpenChange={setPipelineOpen} />
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

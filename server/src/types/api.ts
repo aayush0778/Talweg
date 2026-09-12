@@ -109,6 +109,13 @@ export interface AlertResponse {
   evidence: Record<string, unknown> | null;
   status: 'active' | 'acknowledged' | 'resolved';
   created_at: string;
+  // Final Upgrade operational fields (§19) — null when migration 006 is pending
+  alert_code?: string | null;
+  trigger_summary?: string | null;
+  threshold_ratio?: number | null;
+  evidence_quality?: number | null;
+  recommended_action?: string | null;
+  expires_at?: string | null;
 }
 
 export interface CopilotAskRequest {

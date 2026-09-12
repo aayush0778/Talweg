@@ -28,7 +28,7 @@ interface RiskZoneRow {
   historical_density: number;
 }
 
-async function mapRowToResponse(row: RiskZoneRow): Promise<RiskZoneResponse> {
+export async function mapRowToResponse(row: RiskZoneRow): Promise<RiskZoneResponse> {
   let riskScore: number | null = null;
   let riskLevel: RiskZoneResponse['risk_level'] = null;
 
@@ -93,6 +93,25 @@ const BASE_ZONE_QUERY = `
 `;
 
 /**
+ * Service functions shared with the spec-conformant /api/zones aliases
+ * (Final Upgrade routes). Kept here to avoid query drift.
+ */
+export async function listRiskZonesService(regionId: string | null): Promise<RiskZoneResponse[]> {
+  const sql = `${BASE_ZONE_QUERY} WHERE ($1::text IS NULL OR z.region_id = $1) ORDER BY z.name;`;
+  const result = await query<RiskZoneRow>(sql, [regionId]);
+  return Promise.all(result.rows.map(mapRowToResponse));
+}
+
+export async function getRiskZoneService(id: string): Promise<RiskZoneResponse> {
+  const sql = `${BASE_ZONE_QUERY} WHERE z.id = $1;`;
+  const result = await query<RiskZoneRow>(sql, [id]);
+  if (result.rows.length === 0) {
+    throw ApiError.notFound(`Risk zone '${id}' not found`, 'ZONE_NOT_FOUND');
+  }
+  return mapRowToResponse(result.rows[0]);
+}
+
+/**
  * GET /api/risk-zones
  * Returns all risk zones with their latest environmental assessment and risk level.
  * Uses Promise.all to parallelize evaluations across zones within a single timeout window.
@@ -106,10 +125,7 @@ router.get(
     }
 
     const { region_id } = parseResult.data;
-    const sql = `${BASE_ZONE_QUERY} WHERE ($1::text IS NULL OR z.region_id = $1) ORDER BY z.name;`;
-    const result = await query<RiskZoneRow>(sql, [region_id || null]);
-
-    const zones: RiskZoneResponse[] = await Promise.all(result.rows.map(mapRowToResponse));
+    const zones = await listRiskZonesService(region_id || null);
     res.json(zones);
   })
 );
@@ -126,15 +142,7 @@ router.get(
       throw ApiError.badRequest('Invalid zone ID parameter', 'VALIDATION_ERROR', parseResult.error.format());
     }
 
-    const { id } = parseResult.data;
-    const sql = `${BASE_ZONE_QUERY} WHERE z.id = $1;`;
-    const result = await query<RiskZoneRow>(sql, [id]);
-
-    if (result.rows.length === 0) {
-      throw ApiError.notFound(`Risk zone '${id}' not found`, 'ZONE_NOT_FOUND');
-    }
-
-    const zone = await mapRowToResponse(result.rows[0]);
+    const zone = await getRiskZoneService(parseResult.data.id);
     res.json(zone);
   })
 );

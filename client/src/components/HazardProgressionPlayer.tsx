@@ -27,6 +27,8 @@ interface HazardProgressionPlayerProps {
   onToggleHistoricalMarker: () => void;
   terrain3D: boolean;
   onToggleTerrain3D: () => void;
+  /** Width (px) of the zone sidebar to keep clear — the player floats over the map only. */
+  rightInset?: number;
 }
 
 export const HazardProgressionPlayer: React.FC<HazardProgressionPlayerProps> = ({
@@ -42,6 +44,7 @@ export const HazardProgressionPlayer: React.FC<HazardProgressionPlayerProps> = (
   onToggleHistoricalMarker,
   terrain3D,
   onToggleTerrain3D,
+  rightInset,
 }) => {
   const currentStep = data.timeline[currentStepIndex] || data.timeline[0];
 
@@ -82,8 +85,8 @@ export const HazardProgressionPlayer: React.FC<HazardProgressionPlayerProps> = (
     const handleMouseMove = (e: MouseEvent) => {
       const delta = dragStartYRef.current - e.clientY;
       const proposedHeight = startHeightRef.current + delta;
-      const minH = 68;
-      const maxH = Math.min(window.innerHeight * 0.85, 620);
+      const minH = 64;
+      const maxH = Math.min(window.innerHeight * 0.6, 440);
       const clamped = Math.max(minH, Math.min(maxH, proposedHeight));
 
       if (clamped <= 140) {
@@ -110,21 +113,27 @@ export const HazardProgressionPlayer: React.FC<HazardProgressionPlayerProps> = (
   const toggleCompact = () => {
     if (isCompact) {
       setIsCompact(false);
-      setCustomHeight(380);
+      setCustomHeight(320);
     } else {
       setIsCompact(true);
-      setCustomHeight(68);
+      setCustomHeight(64);
     }
   };
 
   const badgeClasses = getRiskBadgeClasses(currentStep.risk_level);
 
+  // Float over the map area only — never covering the zone sidebar.
+  const insetStyle: React.CSSProperties = {
+    right: rightInset !== undefined ? rightInset + 24 : 12,
+    ...(customHeight ? { height: `${customHeight}px` } : {}),
+  };
+
   return (
     <aside
       ref={containerRef}
-      style={customHeight ? { height: `${customHeight}px` } : undefined}
-      className={`fixed bottom-0 left-0 right-0 z-30 bg-ink-900/98 backdrop-blur-xl border-t border-line-strong shadow-drawer flex flex-col transition-all duration-150 select-none ${
-        isCompact ? 'h-[68px]' : customHeight ? '' : 'h-[360px] md:h-[400px]'
+      style={insetStyle}
+      className={`fixed bottom-3 left-3 z-30 bg-ink-900/98 backdrop-blur-xl border border-line-strong rounded-2xl shadow-drawer flex flex-col transition-all duration-150 select-none overflow-hidden ${
+        isCompact ? 'h-[64px]' : customHeight ? '' : 'h-[300px] md:h-[320px]'
       }`}
       aria-label="Hazard progression player"
     >

@@ -6,6 +6,8 @@ import { ProvenanceBadge } from './ProvenanceBadge';
 
 interface DataSourcePanelProps {
   health: HealthResponse | null;
+  /** Notifies the parent (Header) so it can raise its stacking order while open. */
+  onOpenChange?: (open: boolean) => void;
 }
 
 interface DataSource {
@@ -74,15 +76,24 @@ const statusIndicator: Record<string, { color: string; label: string }> = {
   demo: { color: 'bg-silt-400', label: 'Demo' },
 };
 
-export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ health }) => {
+export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ health, onOpenChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [validation, setValidation] = useState<ModelValidationResponse | null>(null);
   const [validationLoading, setValidationLoading] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
+  const setOpen = useCallback(
+    (next: boolean) => {
+      setIsOpen(next);
+      onOpenChange?.(next);
+    },
+    [onOpenChange]
+  );
+
   const handleToggle = useCallback(() => {
     setIsOpen((prev) => {
       const next = !prev;
+      onOpenChange?.(next);
       if (next && !validation && !validationLoading) {
         setValidationLoading(true);
         setValidationError(null);
@@ -93,7 +104,7 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ health }) => {
       }
       return next;
     });
-  }, [validation, validationLoading]);
+  }, [validation, validationLoading, onOpenChange]);
 
   const isHealthy = health?.database === 'connected';
 
@@ -110,7 +121,17 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ health }) => {
       </button>
 
       {isOpen && (
-        <div className="absolute top-10 right-0 w-96 bg-ink-900/98 backdrop-blur-xl border border-line-strong rounded-lg shadow-2xl z-50 overflow-hidden text-paper-200">
+        <>
+          {/* Click-outside catcher: any click closes the panel (panel itself stops propagation) */}
+          <div
+            className="fixed inset-0 z-40"
+            aria-hidden="true"
+            onClick={() => setOpen(false)}
+          />
+          <div
+            className="absolute top-10 right-0 w-96 max-w-[calc(100vw-2rem)] bg-ink-900/98 backdrop-blur-xl border border-line-strong rounded-lg shadow-2xl z-50 overflow-hidden text-paper-200"
+            onClick={(e) => e.stopPropagation()}
+          >
           <div className="p-3 border-b border-line-subtle bg-ink-950/60">
             <div className="flex items-center gap-2">
               <Database className="w-3.5 h-3.5 text-lichen-400" aria-hidden="true" />
@@ -190,7 +211,8 @@ export const DataSourcePanel: React.FC<DataSourcePanelProps> = ({ health }) => {
               </div>
             )}
           </div>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

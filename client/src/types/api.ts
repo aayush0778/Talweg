@@ -143,6 +143,13 @@ export interface AlertResponse {
   evidence: Record<string, unknown> | null;
   status: 'active' | 'acknowledged' | 'resolved';
   created_at: string;
+  // Final Upgrade operational fields (§19) — null when migration 006 is pending
+  alert_code?: string | null;
+  trigger_summary?: string | null;
+  threshold_ratio?: number | null;
+  evidence_quality?: number | null;
+  recommended_action?: string | null;
+  expires_at?: string | null;
 }
 
 export interface CopilotAskRequest {
@@ -355,4 +362,304 @@ export interface ZoneForecastResponse {
   forecast_days: WeatherForecastDay[];
   provenance: ProvenanceInfo;
   fetched_at: string;
+}
+
+// ===================== FINAL UPGRADE (SIH26001) =====================
+
+// ----- Canonical Feature Contract (spec §4.1) -----
+
+export type ProvenanceType = 'REAL' | 'DERIVED' | 'SYNTHETIC' | 'UNKNOWN';
+export type QualityStatus = 'VALID' | 'PARTIAL' | 'MISSING' | 'INVALID';
+
+export interface FeatureValue {
+  value: number | string | null;
+  unit: string;
+  source_id: string;
+  provenance_type: ProvenanceType;
+  observed_at?: string;
+  window_start?: string;
+  window_end?: string;
+  spatial_reference?: string;
+  spatial_distance_km?: number;
+  transformation?: string;
+  quality_status: QualityStatus;
+}
+
+export interface FeatureRecord {
+  feature_schema_version: string;
+  location: { latitude: number; longitude: number; zone_id?: string };
+  as_of: string;
+  features: Record<string, FeatureValue | undefined>;
+  completeness: number;
+  alignment_status: 'aligned' | 'partial' | 'unknown' | 'invalid';
+  demo_fallback_mode?: boolean;
+  rainfall_provenance?: ProvenanceType;
+}
+
+// ----- Threshold engine (spec §8) -----
+
+export type ThresholdBand = 'below' | 'approached' | 'strong' | 'extreme';
+
+export interface DurationThresholdEvaluation {
+  duration_days: number;
+  observed_cumulative_mm: number;
+  observed_intensity: number;
+  threshold_cumulative_mm: number;
+  threshold_intensity_mm_per_day: number;
+  ratio: number;
+  band: ThresholdBand;
+  evaluated: boolean;
+}
+
+export interface ThresholdEvaluation {
+  exceeded: boolean;
+  max_ratio: number | null;
+  critical_duration_days: number | null;
+  safety_level: RiskLevel;
+  durations: DurationThresholdEvaluation[];
+  citation: string;
+  rainfall_provenance: ProvenanceType;
+  source_id: string;
+}
+
+// ----- Deterministic rule signals (spec §24) -----
+
+export interface DeterministicRuleSignal {
+  rule: string;
+  status: RiskLevel;
+  detail: string;
+}
+
+// ----- Canonical hybrid risk response (spec §16) -----
+
+export type ModelMode = 'synthetic_surrogate' | 'hybrid_prototype' | 'empirical_model';
+
+export interface HybridRiskOutput {
+  risk_index: number;
+  risk_level: RiskLevel;
+  model_mode: ModelMode;
+  ml: { score: number | null; model_version: string; is_probability: false; used: boolean };
+  deterministic: { score: number; contributing_factors: FactorContribution[] };
+  rainfall_threshold: {
+    duration_days: number | null;
+    observed_intensity: number | null;
+    threshold: number | null;
+    ratio: number | null;
+    band: ThresholdBand;
+    safety_level: RiskLevel;
+    evaluation: ThresholdEvaluation;
+  };
+  antecedent_rainfall_index: number | null;
+  data_quality: {
+    completeness: number;
+    data_quality_score: number;
+    source_quality: number;
+    temporal_alignment: number;
+    spatial_alignment: number;
+  };
+  uncertainty: {
+    domain_warning: boolean;
+    clamped_features: string[];
+    message: string | null;
+  };
+  triggered_rules: DeterministicRuleSignal[];
+  fallback_used: boolean;
+  fallback_reason: string | null;
+  model_version: string;
+  model_role: string;
+  is_probability: false;
+  feature_schema_version: string;
+  timestamp: string;
+}
+
+export interface ZoneRiskResponse extends HybridRiskOutput {
+  zone_id: string;
+  zone_name: string;
+}
+
+// ----- Simulation (spec §17/§28) -----
+
+export type ScenarioPresetId =
+  | 'baseline'
+  | 'rainfall_plus_25'
+  | 'rainfall_plus_50'
+  | 'rainfall_plus_100'
+  | 'sustained_rainfall'
+  | 'high_antecedent'
+  | 'wet_soil'
+  | 'steep_slope'
+  | 'custom';
+
+export interface ScenarioPresetInfo {
+  id: ScenarioPresetId;
+  label: string;
+  description: string;
+}
+
+export interface SimulationOverrides {
+  rainfall_24h?: number;
+  rainfall_3d?: number;
+  rainfall_5d?: number;
+  rainfall_7d?: number;
+  soil_moisture?: number;
+  slope?: number;
+  historical_density?: number;
+}
+
+export interface SimulateRequest {
+  zone_id: string;
+  preset?: ScenarioPresetId;
+  baseline?: boolean;
+  overrides?: SimulationOverrides;
+}
+
+export interface SimulationResponse {
+  scenario_id: string;
+  zone_id: string;
+  zone_name: string;
+  baseline: HybridRiskOutput;
+  scenario: HybridRiskOutput;
+  delta: {
+    risk_index: number;
+    risk_level_from: string;
+    risk_level_to: string;
+    threshold_ratio_change: number | null;
+  };
+  largest_change_driver: {
+    feature: string;
+    baseline_value: number;
+    scenario_value: number;
+    delta: number;
+  } | null;
+  threshold_ratio: number | null;
+  model_mode: string;
+  data_quality: HybridRiskOutput['data_quality'];
+  label: string;
+  timestamp: string;
+}
+
+export interface SensitivityResponse {
+  zone_id: string;
+  zone_name: string;
+  n_runs: number;
+  perturbations: { rainfall: number; soil_moisture: number; slope: number };
+  median_risk_index: number;
+  p10_risk_index: number;
+  p90_risk_index: number;
+  proportion_high_severe: number;
+  min_risk_index: number;
+  max_risk_index: number;
+  label: string;
+  timestamp: string;
+}
+
+// ----- Data sources (spec §26) -----
+
+export type DataSourceStatus = 'LIVE' | 'RECENT' | 'HISTORICAL' | 'DERIVED' | 'SYNTHETIC' | 'UNAVAILABLE';
+
+export interface DataSourceInfo {
+  id: string;
+  name: string;
+  type: string;
+  provider: string;
+  usage: string;
+  last_update: string | null;
+  update_frequency: string;
+  spatial_resolution: string;
+  temporal_resolution: string;
+  coverage: string;
+  status: DataSourceStatus;
+  provenance: 'REAL' | 'DERIVED' | 'SYNTHETIC';
+  license: string | null;
+  citation: string | null;
+}
+
+export interface DataSourcesResponse {
+  sources: DataSourceInfo[];
+  feature_schema_version: string;
+}
+
+// ----- Model page (spec §25) -----
+
+export interface ModelInfoResponse {
+  current_mode: { id: string; label: string; description: string };
+  ml_model: {
+    type: string;
+    version: string;
+    role: string;
+    is_probability: false;
+    training_data: string;
+    validation_status: string;
+  };
+  probability_display_allowed: false;
+  artifact: {
+    checksum_verified: boolean;
+    artifact_hash: string | null;
+    source: string;
+  };
+  governance: {
+    feature_schema_version: string;
+    fallback_policy: string;
+    promotion_policy: string;
+  };
+  pipeline: { stage: string; detail: string }[];
+  ml_service_available: boolean;
+  timestamp: string;
+}
+
+// ----- System health (spec §27) -----
+
+export type ComponentStatus = 'HEALTHY' | 'DEGRADED' | 'PARTIAL' | 'UNAVAILABLE';
+
+export interface SystemHealthResponse {
+  status: ComponentStatus;
+  timestamp: string;
+  components: {
+    node_api: { status: ComponentStatus; uptime_seconds: number; latency_ms: number };
+    database: { status: ComponentStatus; mode: 'postgres' | 'in_memory_fallback'; postgis: string | null };
+    ml_service: { status: ComponentStatus; url_configured: string; model_loaded: boolean | null; latency_ms: number | null };
+    model_artifact: { status: ComponentStatus; checksum: string | null; checksum_verified: boolean; version: string };
+    data_pipeline: { status: ComponentStatus; latest_ingestion_at: string | null; note: string };
+  };
+  metrics: {
+    last_successful_prediction_at: string | null;
+    fallback_count_24h: number | null;
+    predictions_24h: number | null;
+  };
+  feature_schema_version: string;
+}
+
+// ----- Replay timeline (spec §18) -----
+
+export type TimelinePhase = 'T-7d' | 'T-5d' | 'T-3d' | 'T-24h' | 'EVENT';
+
+export interface ReplayTimelineStep {
+  phase: TimelinePhase;
+  days_before_event: number;
+  date: string | null;
+  daily_rainfall_mm: number;
+  cumulative_rainfall_mm: number;
+  antecedent_rainfall_index: number;
+  threshold_ratio: number | null;
+  critical_duration_days: number | null;
+  model_score: number;
+  final_risk_index: number;
+  risk_level: RiskLevel;
+  alert_state: 'NONE' | 'WATCH' | 'HIGH' | 'SEVERE';
+  note: string;
+}
+
+export interface ReplayTimeline {
+  steps: ReplayTimelineStep[];
+  reconstruction: 'observed_daily_series' | 'uniform_window_reconstruction';
+  methodology_note: string;
+}
+
+export interface HistoricalEventReplayResponse extends HistoricalReplayResponse {
+  timeline: ReplayTimeline;
+  replay_classification: {
+    status: 'real_replay' | 'methodology_only' | 'synthetic_demo';
+    label: string;
+    caveat: string;
+  };
 }

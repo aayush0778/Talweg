@@ -375,3 +375,77 @@ Ask the constrained AI Copilot for grounded corridor risk explanations or histor
   "timestamp": "2026-08-29T12:00:00.000Z"
 }
 ```
+
+---
+
+# Final Upgrade Endpoints (SIH26001 Final Upgrade)
+
+All responses are additive to the existing contract. Canonical shape per
+Final Upgrade Spec §16/§28. Every risk response includes `model_mode`,
+`model_version`, `is_probability: false`, `feature_schema_version`,
+`fallback_used`, `fallback_reason` and `data_quality`.
+
+## POST /api/predict
+Request: `{ "zone_id": "gangtok" }`
+Response (abridged):
+```json
+{
+  "zone_id": "gangtok",
+  "zone_name": "Gangtok Corridor",
+  "risk_index": 0.356,
+  "risk_level": "MODERATE",
+  "model_mode": "hybrid_prototype",
+  "ml": { "score": 0.356, "model_version": "synthetic-surrogate-0.1.0", "is_probability": false, "used": true },
+  "deterministic": { "score": 0.339, "contributing_factors": [ /* … */ ] },
+  "rainfall_threshold": {
+    "duration_days": 3, "observed_intensity": 13.0, "threshold": 55.088,
+    "ratio": 0.708, "band": "below", "safety_level": "LOW",
+    "evaluation": { "durations": [ /* D = 1, 3, 5, 7 */ ], "citation": "Regional Sikkim threshold: I = 43.26 × D^-0.78 (mm/day)", "rainfall_provenance": "SYNTHETIC" }
+  },
+  "antecedent_rainfall_index": 29.89,
+  "data_quality": { "completeness": 0.8, "data_quality_score": 0.8, "source_quality": 0.8, "temporal_alignment": 1.0, "spatial_alignment": 1.0 },
+  "uncertainty": { "domain_warning": false, "clamped_features": [], "message": null },
+  "triggered_rules": [ { "rule": "rainfall_threshold", "status": "LOW", "detail": "3-day rainfall at 0.71× the regional threshold" } ],
+  "feature_schema_version": "1.0.0"
+}
+```
+
+## POST /api/simulate
+Request: `{ "zone_id": "gangtok", "preset": "rainfall_plus_100", "overrides": { "rainfall_24h": 120 } }`
+Presets: `baseline · rainfall_plus_25 · rainfall_plus_50 · rainfall_plus_100 ·
+sustained_rainfall · high_antecedent · wet_soil · steep_slope · custom`.
+Response: `{ baseline, scenario, delta: { risk_index, risk_level_from, risk_level_to, threshold_ratio_change }, largest_change_driver, threshold_ratio, model_mode, data_quality, label }`.
+
+## POST /api/simulate/sensitivity
+Request: `{ "zone_id": "gangtok", "n_runs": 40, "seed": 42 }`
+Response: `{ median_risk_index, p10_risk_index, p90_risk_index, proportion_high_severe, perturbations, label: "Scenario sensitivity, not statistical prediction uncertainty." }`
+
+## GET /api/zones, GET /api/zones/:id
+Spec-conformant aliases of `/api/risk-zones` (+ `/api/zones/:id/risk`).
+
+## GET /api/zones/:id/features
+Canonical `FeatureRecord` (schema `1.0.0`): per-feature `FeatureValue` with
+`value | null` (null = missing, never zero-filled), `unit`, `source_id`,
+`provenance_type`, `quality_status`, windows and transformation.
+
+## GET /api/data-sources
+`{ sources: [ { id, name, type, provider, usage, last_update, update_frequency, spatial_resolution, temporal_resolution, coverage, status, provenance, license, citation } ] }`.
+Statuses used: `HISTORICAL · DERIVED · SYNTHETIC · UNAVAILABLE` (never LIVE).
+
+## GET /api/model
+Model card + governance: `current_mode`, `ml_model` (version, role,
+`is_probability: false`, training data), `artifact.checksum_verified`,
+`pipeline`, `governance.fallback_policy / promotion_policy`.
+
+## GET /api/system-health
+`{ status, components: { node_api, database{mode}, ml_service, model_artifact, data_pipeline }, metrics: { last_successful_prediction_at, fallback_count_24h, predictions_24h } }`.
+`database.mode = "in_memory_fallback"` is reported honestly when Postgres is down.
+
+## GET /api/historical-events, GET /api/historical-events/:id/replay
+Spec-conformant aliases of `/api/historical-replays` + replay response extended with:
+```json
+{
+  "timeline": { "steps": [ { "phase": "T-7d", "daily_rainfall_mm": 18.5, "cumulative_rainfall_mm": 18.5, "antecedent_rainfall_index": 18.5, "threshold_ratio": 0.428, "final_risk_index": 0.34, "risk_level": "MODERATE", "alert_state": "NONE" } ], "reconstruction": "uniform_window_reconstruction", "methodology_note": "…" },
+  "replay_classification": { "status": "real_replay", "label": "REAL REPLAY", "caveat": "…" }
+}
+```
